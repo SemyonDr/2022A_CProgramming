@@ -94,6 +94,19 @@ void PrintError(Error* er) {
         printf("Nested macro definitions are forbidden.");
         break;
 
+    case ErrStm_Empty:
+        if (er->info != NULL)
+            printf("\"%s\" <- ", er->info);
+        printf("Statement is empty.");
+        break;
+
+    case ErrStm_NotRecognized:
+        if (er->info != NULL)
+            printf("\"%s\" <- ", er->info);
+        printf("Unknown command.");
+
+    
+
     default:
         break;
     }

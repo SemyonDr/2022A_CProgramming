@@ -7,6 +7,10 @@
 #include "Errors.h"
 #include "Parsing.h"
 
-
+typedef struct ParsedCode {
+    List* instructions;     /* List of parsed instructions in order. */
+    List* data;             /* List of parsed data lines in order. */
+    List* symbols;          /* Symbols table. */
+} ParsedCode;
 
 #endif

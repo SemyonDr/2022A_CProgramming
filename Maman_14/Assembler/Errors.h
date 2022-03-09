@@ -20,7 +20,8 @@ enum ErrorsEnum {
     ErrMacro_ExtraCall,          /* Extra text after macro name in macro call line*/
     ErrMacro_Nested,             /* Macro defined inside macro. */
 
-    ErrLine_Empty                /* Line is empty. */
+    ErrStm_Empty,                /* Statement is empty line. */
+    ErrStm_NotRecognized         /* Statement not recognized. */
 };
 
 /* Structure that describes error in source file. */

@@ -1,5 +1,59 @@
 #include "Binary.h"
 
+int GetInstructionCode(char* ins) {
+    if (CompareStrings(ins, "mov"))
+        return ins_mov;
+    if (CompareStrings(ins, "cmp"))
+        return ins_cmp;
+    if (CompareStrings(ins, "add"))
+        return ins_add;
+    if (CompareStrings(ins, "sub"))
+        return ins_sub;
+
+    if (CompareStrings(ins, "lea"))
+        return ins_lea;
+    if (CompareStrings(ins, "clr"))
+        return ins_clr;
+    if (CompareStrings(ins, "not"))
+        return ins_not;
+    if (CompareStrings(ins, "inc"))
+        return ins_inc;
+
+    if (CompareStrings(ins, "dec"))
+        return ins_dec;
+    if (CompareStrings(ins, "jmp"))
+        return ins_jmp;
+    if (CompareStrings(ins, "bne"))
+        return ins_bne;
+    if (CompareStrings(ins, "jsr"))
+        return ins_jsr;
+
+    if (CompareStrings(ins, "red"))
+        return ins_red;
+    if (CompareStrings(ins, "prn"))
+        return ins_prn;
+    if (CompareStrings(ins, "rts"))
+        return ins_rts;
+    if (CompareStrings(ins, "stop"))
+        return ins_stop;
+
+    return -1;
+}
+
+
+InsInfo GetInstructionInfo(InsInfo info[], int insCode) {
+    return info[insCode];
+}
+
+Ins* ParseInstructionLine(char* line, List* unresolved, List* errors) {
+    
+    /* Getting instruction code. Instruction name assumed to be valid name */
+
+
+
+
+}
+
 /* Assumes that pre-processed file exists.
    Produces 4 tables:
     instructions (structures)
@@ -8,11 +62,12 @@
     entry symbols
    Also catches parsing errors.
   */
-void ParseExpanded(char* source_file_name, List* errors) {
+void ParseExpanded(char* source_file_name, DArrayInt* slr, ParsedCode* pcode, List* symbolsTable, List* errors) {
     FILE* file; /* Expanded source file handler. */
     char* full_fname; /* Buffer for holding full file name with extension. */
     int full_fname_len; /* Length of filename with extension. */
     char line[MAX_STATEMENT_LEN+2]; /* Buffer for holding line from file. */
+    int line_num = 0;   /* Number of line in expanded source file. */
     int icount=100;     /* Instruction counter. */
     int dcount=0;     /* Data counter. */
 
@@ -32,8 +87,12 @@ void ParseExpanded(char* source_file_name, List* errors) {
         int pos = 0; /* Position in line. */
         char label[MAX_LABEL_LEN+1]; /* Buffer for holding statement label. */
         char word[MAX_STATEMENT_LEN+2]; /* Buffer for holding word from line. */
+        int wordtype; /* Variable that stores IsReservedWord result. Allows to determine if line is a instruction, or directive, or neither. */
         char* label_res; /* Variable for storing label reading result. */
         char* res;  /* Variable for storing word reading result. */
+        
+
+        line_num++; /* Advancing line counter. Lines are numbered starting from 1. */
         
         /* Trying to get label before statement. */
         label_res = TryGetLabel(line, &pos, label, MAX_LABEL_LEN);
@@ -41,7 +100,35 @@ void ParseExpanded(char* source_file_name, List* errors) {
         /* Getting next word */
         res = GetNextWord(line, &pos, word, MAX_STATEMENT_LEN+1, NULL);
 
-        if (res==NULL)
+        /* If there is nothing besides the label adding error and skipping line. */
+        /* If there was a label before empty line it will not be added to symbols table. */
+        if (res == NULL) {
+            if (label != NULL)
+                AddError(errors, slr->data[line_num], ErrStm_Empty, line);
+            else
+                AddError(errors, slr->data[line_num], ErrStm_Empty, NULL);
+            continue; /* Skipping the line. */
+        }
+
+        /* Checking if first (besides label) word of the line is an reserved word. */
+        wordtype = IsReservedWord(word);
+
+        /* If it's not a reserved word. */
+        if (wordtype == 0) {
+            AddError(errors, slr->data[line_num], ErrStm_NotRecognized, word);
+            continue; /* Skipping the line */
+        }
+
+        /* Checking if line is an instruction. */
+        if (wordtype == 1) {
+            /* If label exists adding it to symbols table. */
+
+
+
+            /* Parsing instruction */
+
+        }
+
 
 
     }
@@ -49,9 +136,6 @@ void ParseExpanded(char* source_file_name, List* errors) {
 
     /* Closing the file. */
     fclose(file);
-
-
-
 }
 
 void ProduceBinary(char* source_file_name) {

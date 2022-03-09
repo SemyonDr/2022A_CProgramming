@@ -49,14 +49,7 @@ typedef struct Ins {
 typedef struct Symbol {
    char name[32];    /* Symbol label. */
    int adress;       /* Address represented by label (decimal) */
-   int attributes;   /* 4-bit value that represents symbol attributes.
-                        From least important bit to last bits represent:
-                        1 - code
-                        2 - data
-                        3 - external
-                        4 - entry
-                        For example if attributes = 10 = [1010]
-                        attributes are data [0010] and entry [1000].*/
+   int attributes;   /* [8]code-[4]data-[2]extern-[1]entry*/
 } Symbol;
 
 /* Structure for holding pair of label and pointer
@@ -74,10 +67,8 @@ typedef struct InsInfo {
    int ins;                /* Instruction number according to InstructionsEnum*/
    int opcode;             /* Instruction opcode */
    int funct;              /* Instruction funct code. (0 if no code)*/
-   int amodes_source[4];   /* List of adressing modes for source argument according
-                              to AdressingModes enum. -1 in a cell means cell is empty. */
-   int amodes_dest[4];   /* List of adressing modes for destination argument according
-                              to AdressingModes enum. -1 in a cell means cell is empty. */
+   int amodes_source;      /* [8]immideate-[4]direct-[2]d-index-[1]register*/
+   int amodes_dest;
 } CmdInfo;
 
 
@@ -153,5 +144,23 @@ void DArrayIntAdd(DArrayInt* dArray, int data);
    Arguments:
     dArray  -- Dynamic array to free. */
 void DArrayIntFree(DArrayInt* dArray);
+
+int IsCode(int attributes) {
+   return attributes & 8;
+}
+
+int IsData(int attributes) {
+   return attributes & 4;
+}
+
+int IsExtern(int attributes) {
+   return attributes & 2;
+}
+
+int IsEntry(int attributes) {
+   return attributes & 1;
+}
+
+
 
 #endif
