@@ -1,0 +1,4 @@
+func("text");
+	func("text)");
+	func(")";
+	func("/*)*/";

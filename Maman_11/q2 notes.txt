@@ -1,0 +1,83 @@
+global in comment
+
+0 - not single
+1 - {
+2 - }
+checkIfSingle(string) {
+	char bracket = 0;
+	
+	iterate trough string {
+		if not blank { or } or \n encountered
+			return 0
+		else
+			if bracket != 0
+				return 0;
+			else
+				bracket = string[i];
+	}
+	if bracket {
+		return 1
+	if bracket }
+		return 2
+}
+
+0 - fine
+1 - bad
+int Checkstring(char string[]) {
+	declare bool in text 0;
+	declare array brackets [100]
+	declate brackets index
+	
+	iterate through string {
+		
+		if not in comment && not in text
+			if text starting
+				intext = true
+			
+		if not in comment && not in text
+			if comment starting
+				incomment = true
+		
+		if in comment
+			if comment ending
+				incomment = false
+		
+		if in text
+			if text ending
+				intext = false
+
+		if not in comment and not in text
+		{
+			check if opening bracket encountered
+				add it to the list
+				index++
+			check if closing bracket encountered
+				if it matches with opening bracket (index should be >0)
+					index--
+				if doesn't match
+					return 1
+		}
+	}//iterate
+	
+	//line ended while in comment
+	if incomment
+		return 0
+	
+	//not all brackets closed
+	if index != 0
+		return 1
+	
+	
+	return 0;
+}	
+-1) super basic balanced (keyboard)
+0) super basic unbalanced (keyboard)
+1) Basic balanced
+2) Basic unbalanced
+3) Global balanced
+4) Global unbalanced
+5) Real balanced
+6) Real unbalanced
+7) Comments
+8) Text
+9) real

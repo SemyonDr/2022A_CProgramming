@@ -1,0 +1,20 @@
+/*Checking if comment is starting*/
+if (s[i] == '/' && s[i+1] == '*') 
+{
+	inComment = 1;
+	/*Searching for the end of the comment*/
+	while (s[i+1] != '\0' && inComment) 
+	{
+		/*If end is found skipping to the symbol after it*/
+		if (s[i] == '*' && s[i+1] == '/') 
+		{
+			inComment = 0;
+			i = i+1;
+		}           
+		i++;     
+	}
+	/*If comment end isn't found and the string ended return that
+	  string is valid and note that inComment now set to 1.*/
+	if (s[i] == '\0')
+		return 1;
+}

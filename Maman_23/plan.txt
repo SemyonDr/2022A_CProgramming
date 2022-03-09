@@ -1,0 +1,34 @@
+if (list != NULL) {
+
+        printf("DEBUG: ~~data; Adding something to list\n");
+        printf("DEBUG: ~~data; Size of node is %lu\n", sizeof(ListNode));
+        printf("DEBUG: ~~data; Size of void* is %lu\n", sizeof(int*));
+        printf("DEBUG: ~~data; Size of void* is %lu\n", sizeof(void*));
+        printf("DEBUG: ~~data; Size of ListNode* is %lu\n", sizeof(ListNode*));
+        printf("DEBUG: ~~data; Size of char is %lu\n", sizeof(char));
+        printf("DEBUG: ~~data; Size of int is %lu\n", sizeof(int));
+        printf("DEBUG: ~~data; Size of long is %lu\n", sizeof(long));
+        printf("DEBUG: ~~data; Size of char* is %lu\n", sizeof(char*));
+        /* Setting up node */
+
+        if (node == NULL) { perror("Failed to allocate memory"); exit(1); }
+        printf("DEBUG: ~~data; \tAllocated memory for node. \n");
+        node->data = data;
+        printf("DEBUG: ~~data; \tCreated node. \n");
+        /* Adding node to the list. */
+        if (list->head == NULL) {/* If list is empty new node becomes head. */
+            printf("DEBUG: ~~data; \tNode added as head. \n");
+            list->head = node;
+        }
+        else { /* If list is not empty searching last node. */
+            ListNode* cur = list->head;
+            while (cur->next != NULL) {
+                cur = cur->next;
+                cur->next = node;
+            }
+            printf("DEBUG: ~~data; \tNode added as tail. \n");
+        }
+        /* Increasing number of elements in the list. */
+        (list->count)++;
+        printf("DEBUG: ~~data; Something added to list as element [%d]. \n", list->count-1);
+    }

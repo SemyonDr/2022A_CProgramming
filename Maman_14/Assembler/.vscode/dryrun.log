@@ -1,0 +1,5 @@
+make --dry-run --always-make --keep-going --print-directory
+make: Entering directory '/home/deer/Uni/C-Projects/Maman_14/Assembler'
+gcc Data.c MyString.c Parsing.c File.c Errors.c Preprocessor.c assembler.c -Wall -ansi -pedantic -o ./bin/assembler
+make: Leaving directory '/home/deer/Uni/C-Projects/Maman_14/Assembler'
+ 

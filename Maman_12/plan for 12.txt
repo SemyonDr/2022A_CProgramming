@@ -1,0 +1,55 @@
+define N = 3
+typedef char[N][N] Square
+
+struct inputBuffer {
+	char* buffer;
+	int step;
+	int buf_len;
+	int input_len
+}
+
+inputBuffer CreateInputBuffer() {
+	inputBuffer.buffer = malloc;
+	//CHECK IF ALLOCATED
+}
+
+void IncreaseInputBuffer(buffer b) {
+	inputBuffer.buffer = realloc
+	//CHECK IF ALLOCATED
+}
+
+void ReleaseIputBuffer
+
+inputBuffer GetInput () {
+	inputBuffer = getInputBuffer()
+	int i = 0;
+	char nextc = 0;
+	while (nextc != eof) {
+		//checking if buffer isnt full
+		if (i+1 == buf_len)
+			increaseInputBuffer()
+		buffer[i] = nextc;
+	}
+}
+
+//returns error code
+int ParseInput(inputBuffer, char[N][N]) {
+	vx
+	vy
+	number_start
+	number_len
+	
+
+
+}
+
+int CheckSquare() {
+	magic_number = -1;
+
+	for ()
+		Check rows
+	for ()
+		Check columns
+	for ()
+		check diagonals
+}

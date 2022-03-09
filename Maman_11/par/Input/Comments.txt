@@ -1,0 +1,9 @@
+/*Whole line [ is a comment*/
+/*Whole line [] is a comment*/
+balancedCode ooo.() [ooo /*in line comment-{]))-ooo()*/ ooo] ooo;
+unbalancedCode [xx /*[in line comment*/ more{}code;
+BalancedCode (xx /*)Multi()
+		line{
+		Comment]*/ xx /*Another comment*/code);
+Comment closes two times ( /*)*/)*/
+Comment closes two times ( /*)*/*/

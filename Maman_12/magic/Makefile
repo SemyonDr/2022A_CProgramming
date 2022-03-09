@@ -1,0 +1,21 @@
+# Setting C compiler
+CC = gcc
+
+# Parameters for C compiler:
+# -Wall -- enable all warnings
+# -ansi	-- defines that ANSI 89 standard is used
+# -pedantic	-- forces to comform to chosen standard
+CFLAGS = -Wall -ansi -pedantic	
+
+# Target, that should be used to compile whole program
+# Executes commands on specified targets
+all: compile
+
+# Compile executable
+# $(CC) - use GCC (defined above)
+# $(CFLAGS) - c compiler flags (defined above)
+# con.c -- file to be compiled
+# -o con -- resulting executable
+compile:
+# Using this command (complinig c code into executable)
+	$(CC) magic.c $(CFLAGS) -o magic

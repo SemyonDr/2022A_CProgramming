@@ -1,0 +1,11 @@
+Notes for submitting homework
+
+1) Should be compiled with maximum flags for warnings: -Wall -ansi -pedantic
+2) Submit:
+	- source code (files .c .h) (.o files should not be submitted)
+	- files of approptiate environment (including Makefile)
+	- input files and screenshots of output (after instructions in a problem/lecture/site)
+3) Files for every problem should be in separate folder.
+4) Name of folder should be the same as name of the file containing main function (not including.c)
+5) Program should be submitted in full (including file containing main function)
+6) 

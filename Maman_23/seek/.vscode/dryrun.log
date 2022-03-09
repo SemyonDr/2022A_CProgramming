@@ -1,0 +1,5 @@
+make --dry-run --always-make --keep-going --print-directory
+make: Entering directory '/home/deer/Uni/C-Projects/Maman_23/seek'
+gcc seek.c -Wall -ansi -pedantic -o seek
+make: Leaving directory '/home/deer/Uni/C-Projects/Maman_23/seek'
+ 
