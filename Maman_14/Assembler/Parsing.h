@@ -8,7 +8,9 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include "Data.h"
 #include "MyString.h"
+#include "Errors.h"
 
 /* Types of lines in assembly source code. */
 enum LineTypeEnum {
@@ -108,5 +110,18 @@ int IsReservedWord(char* s);
     If label is found it will be written to label buffer and pointer will be returned.
     If label isn't found function will return NULL. */
 char* TryGetLabel(char* line, int* pos, char* label, int maxLen);
+
+/* Gets arguments from given line. Advances 
+   line position to line termination character.
+   Checks for comma errors.
+   Arguments:
+    line    -- Instruction line
+    pos     -- Position in line after instruction or directive name.
+    errors  -- List of errors.
+    lineNum -- Number of given line in expanded source code.
+    slr     -- Source line reference.
+   Returns:
+    List of stings of arguments.  */
+List* GetArgs(char* line, int* pos, List* errors, int lineNum, DArrayInt* slr);
 
 #endif

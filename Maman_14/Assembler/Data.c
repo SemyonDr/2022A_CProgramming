@@ -14,6 +14,7 @@ List* CreateList() {
     }
 
     /* Setting initial value */
+    list->head = NULL;
     list->count = 0;
 
     return list;
@@ -30,19 +31,20 @@ void ListAdd(List* list, void* data) {
         /* Setting up node */
         node = (ListNode*)malloc(sizeof(ListNode));
         if (node == NULL) { 
-            perror("Failed to allocate memory");
+            perror("Failed to allocate memory.");
             exit(1); 
         }
 
         node->data = data;
-        
+        node->next = NULL;
+
         /* Adding node to the list. */
         if (list->head == NULL) /* If list is empty new node becomes head. */
             list->head = node;
         else { /* If list is not empty searching last node. */
             ListNode* cur = list->head;
-            while (cur->next != NULL)
-                cur = cur->next;
+            while ((cur->next) != NULL) 
+                cur = (cur->next);
             cur->next = node;
         }
         /* Increasing number of elements in the list. */
@@ -122,4 +124,44 @@ void DArrayIntFree(DArrayInt* dArray) {
     free(dArray->data);
     /* Removing structure. */
     free(dArray);
+}
+
+/* Checks if attribute "code" is set.
+   Arguments:
+    attributes -- attributes number from Symbol structure.
+   Returns:
+    0 -- attribute is set.
+    1 -- Attribute not set. */
+int IsCode(int attributes) {
+   return attributes & 8;
+}
+
+/* Checks if attribute "data" is set.
+   Arguments:
+    attributes -- attributes number from Symbol structure.
+   Returns:
+    0 -- attribute is set.
+    1 -- Attribute not set. */
+int IsData(int attributes) {
+   return attributes & 4;
+}
+
+/* Checks if attribute "extern" is set.
+   Arguments:
+    attributes -- attributes number from Symbol structure.
+   Returns:
+    0 -- attribute is set.
+    1 -- Attribute not set. */
+int IsExtern(int attributes) {
+   return attributes & 2;
+}
+
+/* Checks if attribute "entry" is set.
+   Arguments:
+    attributes -- attributes number from Symbol structure.
+   Returns:
+    0 -- attribute is set.
+    1 -- Attribute not set. */
+int IsEntry(int attributes) {
+   return attributes & 1;
 }

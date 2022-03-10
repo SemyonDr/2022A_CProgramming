@@ -281,3 +281,105 @@ char* TryGetLabel(char* line, int* pos, char* label, int maxLen) {
     else
         return NULL;
 }
+
+/* Skips consequitive commas (poissibly separated by blanks) after given position
+   and advances position to first non-comma character.
+   Returns number of commas skipped.
+   Arguments:
+    line    -- Instruction line.
+    pos     -- Position of character after command name.
+   */
+int SkipCommas(char* line, int* pos) {
+    int num = 0; /* Number of commas. */
+
+    SkipBlank(line, pos);
+    while (line[*pos] == ',') {
+        num++;      /* Counting comma. */
+        (*pos)++;   /* Moving position to the next char. */
+        SkipBlank(line, pos);
+    }
+
+    return num;
+}
+
+/* Gets next argument string starting from specified position in line.
+   Allocates result on heap. Advances position to character after argument.
+   Arguments:
+    line    -- Instruction line.
+    pos     -- Position in instruction line after which next argument should be taken.
+   Returns:
+    Argument string allocated on heap, or NULL if only blank symbols were after given position.  */
+char* GetNextArg(char* line, int* pos) {
+    char* arg;  /* String to hold the argument */
+    char* res;  /* Result of getting the argument. */
+
+    /* Allocating result string. */
+    arg = (char*)malloc(sizeof(char)*(MAX_STATEMENT_LEN+2));
+    if (arg == NULL) {
+        perror("Failed to allocate memory.");
+        exit(1);
+    }
+
+    /* Getting next argument considering ',' end of the word. */
+    res = GetNextWord(line, pos, arg, MAX_STATEMENT_LEN+1, ",");
+
+    /* If nothing was taken. */
+    if (res == NULL) {
+        free(arg);
+        return NULL;
+    }
+    printf("DEBUG: \t\tGot argument [%s]. Now pos is %d.\n", arg, *pos);
+    return arg;
+}
+
+/* Gets arguments from given line. Advances 
+   line position to line termination character.
+   Checks for comma errors.
+   Arguments:
+    line    -- Instruction line
+    pos     -- Position in line after instruction or directive name.
+    errors  -- List of errors.
+    lineNum -- Number of given line in expanded source code.
+    slr     -- Source line reference.
+   Returns:
+    List of stings of arguments.  */
+List* GetArgs(char* line, int* pos, List* errors, int lineNum, DArrayInt* slr) {
+    List* args; /* List for holding arguments. */
+    char* arg; /* Variable for storing an argument. */
+    int num_commas; /* Variable for storing number of commas. */
+
+    /* Initializing the list. */
+    args = CreateList();
+
+    /* Skipping possible illegal commas after command name
+       and before arguments. */
+    num_commas = SkipCommas(line, pos);
+    /* Checking if illegal commas were present. */
+    if (num_commas>0)
+        /* Adding error and continuing. */
+        AddError(errors, slr->data[lineNum], ErrCmm_Before, line);
+
+    /* Getting arguments in a loop.*/
+    while ((arg = GetNextArg(line, pos)) != NULL) {
+        /* Adding argument to the list. */
+        ListAdd(args, arg);
+        
+        /* Checking for comma errors between arguments. */
+        num_commas = SkipCommas(line, pos);
+        /* If arguments wasn't last in line. */
+        if (line[*pos] != '\0') {
+            if (num_commas > 1) 
+                AddError(errors, slr->data[lineNum], ErrCmm_Multiple, line);
+            if (num_commas == 0)
+                AddError(errors, slr->data[lineNum], ErrCmm_Missing, line);
+        } /* If argument was the last one. */
+        else {
+            if (num_commas != 0)
+                AddError(errors, slr->data[lineNum], ErrCmm_After, line);
+        }
+    }
+
+    printf("DEBUG: \t\tGetArgs: Got %d arguments.\n", args->count);
+
+    return args;
+}

@@ -41,16 +41,60 @@ int GetInstructionCode(char* ins) {
 }
 
 
-InsInfo GetInstructionInfo(InsInfo info[], int insCode) {
-    return info[insCode];
-}
 
-Ins* ParseInstructionLine(char* line, List* unresolved, List* errors) {
-    
+Ins* ParseInstructionLine(char* line, List* errors, DArrayInt* slr, int lineNum) {
+    int pos = 0; /* Position in line. */
+    char word[MAX_STATEMENT_LEN+2]; /* Buffer for holding word from line. */
+    char* res;  /* Result of getting the word. */
+    Ins* ins;   /* Parsed instruction structure. */
+    List* args; /* Instruction arguments as strings. */
+    InsInfo insinfo;   /* Info about instruction. */
+
+    {/* DEBUG PRINT ****************************************************** */
+        char* line_copy = CopyStringToHeap(line);
+        RemoveLeadingBlanks(line_copy);
+        ReplaceNewLine(line_copy, ' ');
+        printf("DEBUG: \tBreaking down instruction line [%s]\n", line_copy);
+        free(line_copy);
+    }/* DEBUG PRINT ****************************************************** */
+
+    /* Allocating instruction structure. */
+    ins = (Ins*)malloc(sizeof(Ins));
+    if (ins == NULL) {
+        perror("Failed to allocate memory.");
+        exit(1);
+    }
+
+    /* Skipping label if present. */
+    TryGetLabel(line, &pos, word, MAX_STATEMENT_LEN+1);
+
+    /* Getting first word. */
+    res = GetNextWord(line, &pos, word, MAX_STATEMENT_LEN+1, ",");
+
     /* Getting instruction code. Instruction name assumed to be valid name */
+    ins->ins = GetInstructionCode(word);
 
+    {/* DEBUG PRINT ****************************************************** */
+        printf("DEBUG: \t\tInstruction name: %s\n", word);
+        printf("DEBUG: \t\tInstruction number: %d\n", ins->ins);
+    }/* DEBUG PRINT ****************************************************** */
 
+    /* Getting instruction arguments. */
+    args = GetArgs(line, &pos, errors, lineNum, slr);
 
+    {/* DEBUG PRINT ****************************************************** */
+        int i = 1;
+        ListNode* cur = args->head;
+        while (cur != NULL) {
+            printf("DEBUG: \t\t\t%d: %s\n", i, cur->data);
+            cur = cur->next;
+            i++;
+        }
+    }/* DEBUG PRINT ****************************************************** */
+
+    printf("DEBUG: \t Instruction line broken down.\n");
+
+    return NULL;
 
 }
 

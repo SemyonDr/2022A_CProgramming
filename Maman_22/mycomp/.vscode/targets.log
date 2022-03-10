@@ -6,7 +6,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Fri Mar  4 12:17:02 2022
+# Make data base, printed on Thu Mar 10 11:49:00 2022
 
 # Variables
 
@@ -31,14 +31,13 @@ GTK3_MODULES = xapp-gtk3-module
 # automatic
 @D = $(patsubst %/,%,$(dir $@))
 # environment
- 
 XAUTHORITY = /home/deer/.Xauthority
 # environment
 GDMSESSION = cinnamon
 # default
 MAKE_VERSION := 4.2.1
 # makefile
-CURDIR := /home/deer/Uni/C-Projects/Maman_22/mycomp
+CURDIR := /home/deer/Uni/2022A-CProgramming/Maman_22/mycomp
 # makefile
 SHELL = /bin/sh
 # environment
@@ -80,7 +79,7 @@ PATH = /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/
 # environment
 GPG_AGENT_INFO = /run/user/1000/gnupg/S.gpg-agent:0:1
 # environment
-SESSION_MANAGER = local/deer-mint:@/tmp/.ICE-unix/1065,unix/deer-mint:/tmp/.ICE-unix/1065
+SESSION_MANAGER = local/deer-mint:@/tmp/.ICE-unix/1089,unix/deer-mint:/tmp/.ICE-unix/1089
 # environment
 XDG_RUNTIME_DIR = /run/user/1000
 # environment
@@ -98,7 +97,7 @@ XDG_SESSION_DESKTOP = cinnamon
 # environment
 SSH_AUTH_SOCK = /run/user/1000/keyring/ssh
 # environment
-GIO_LAUNCHED_DESKTOP_FILE_PID = 2987
+GIO_LAUNCHED_DESKTOP_FILE_PID = 2682
 # automatic
 %F = $(notdir $%)
 # environment
@@ -106,15 +105,16 @@ DISPLAY = :0
 # environment
 VSCODE_PIPE_LOGGING = true
 # environment
-PWD = /home/deer/Uni/C-Projects/Maman_22/mycomp
+PWD = /home/deer/Uni/2022A-CProgramming/Maman_22/mycomp
 # environment
 QT_QPA_PLATFORMTHEME = qt5ct
+ 
 # default
 .LOADED := 
 # environment
 XDG_SEAT = seat0
 # environment
-SSH_AGENT_PID = 1134
+SSH_AGENT_PID = 1158
 # environment
 ORIGINAL_XDG_CURRENT_DESKTOP = X-Cinnamon
 # environment
@@ -150,7 +150,7 @@ SHLVL = 0
 # makefile (from 'Makefile', line 2)
 CC = gcc
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-64ee3083-d6ec-4095-a78e-33c286e96e87.sock
+VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-d56acf02-de03-49c6-b9d4-5a38a38362d6.sock
 # environment
 XDG_SESSION_ID = c2
 # environment
@@ -216,7 +216,7 @@ GJS_DEBUG_OUTPUT = stderr
 # environment
 LANG = C
 # environment
-VSCODE_PID = 2987
+VSCODE_PID = 2682
 # variable set hash-table stats:
 # Load=103/1024=10%, Rehash=0, Collisions=8/133=6%
 
@@ -275,7 +275,6 @@ compile:
 # automatic
 # | := 
 # automatic
- 
 # < := 
 # automatic
 # ^ := 
@@ -306,6 +305,6 @@ compile:
 # strcache performance: lookups = 30 / hit rate = 30%
 # hash-table stats:
 # Load=21/8192=0%, Rehash=0, Collisions=1/30=3%
-# Finished Make data base on Fri Mar  4 12:17:02 2022
+# Finished Make data base on Thu Mar 10 11:49:00 2022
 
  

@@ -6,7 +6,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Thu Mar 10 12:00:51 2022
+# Make data base, printed on Mon Mar  7 13:47:20 2022
 
 # Variables
 
@@ -37,7 +37,7 @@ GDMSESSION = cinnamon
 # default
 MAKE_VERSION := 4.2.1
 # makefile
-CURDIR := /home/deer/Uni/2022A-CProgramming/Maman_14/Assembler
+CURDIR := /home/deer/Uni/C-Projects/Test
 # makefile
 SHELL = /bin/sh
 # environment
@@ -46,8 +46,8 @@ GDM_LANG = en_US
 VSCODE_NLS_CONFIG = {"locale":"en-gb","availableLanguages":{},"_languagePackSupport":true}
 # environment
 _ = /usr/share/code/code
-# makefile (from 'Makefile', line 8)
-CFLAGS = -Wall -ansi -pedantic
+# makefile (from 'Makefile', line 9)
+CFLAGS = -Wall -ansi -pedantic -lm
 # environment
 XDG_CONFIG_DIRS = /etc/xdg/xdg-cinnamon:/etc/xdg
 # environment
@@ -79,7 +79,7 @@ PATH = /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/
 # environment
 GPG_AGENT_INFO = /run/user/1000/gnupg/S.gpg-agent:0:1
 # environment
-SESSION_MANAGER = local/deer-mint:@/tmp/.ICE-unix/1089,unix/deer-mint:/tmp/.ICE-unix/1089
+SESSION_MANAGER = local/deer-mint:@/tmp/.ICE-unix/1057,unix/deer-mint:/tmp/.ICE-unix/1057
 # environment
 XDG_RUNTIME_DIR = /run/user/1000
 # environment
@@ -97,7 +97,7 @@ XDG_SESSION_DESKTOP = cinnamon
 # environment
 SSH_AUTH_SOCK = /run/user/1000/keyring/ssh
 # environment
-GIO_LAUNCHED_DESKTOP_FILE_PID = 2682
+GIO_LAUNCHED_DESKTOP_FILE_PID = 1566
 # automatic
 %F = $(notdir $%)
 # environment
@@ -105,7 +105,7 @@ DISPLAY = :0
 # environment
 VSCODE_PIPE_LOGGING = true
 # environment
-PWD = /home/deer/Uni/2022A-CProgramming/Maman_14/Assembler
+PWD = /home/deer/Uni/C-Projects/Test
 # environment
 QT_QPA_PLATFORMTHEME = qt5ct
 # default
@@ -113,7 +113,7 @@ QT_QPA_PLATFORMTHEME = qt5ct
 # environment
 XDG_SEAT = seat0
 # environment
-SSH_AGENT_PID = 1158
+SSH_AGENT_PID = 1127
 # environment
 ORIGINAL_XDG_CURRENT_DESKTOP = X-Cinnamon
 # environment
@@ -149,7 +149,7 @@ SHLVL = 0
 # makefile (from 'Makefile', line 2)
 CC = gcc
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-5e3e36cf-874c-43f5-bd63-64fc45dcfd27.sock
+VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-a71b4cec-326d-4c92-9fc7-ca38a330912b.sock
 # environment
 XDG_SESSION_ID = c2
 # environment
@@ -215,7 +215,7 @@ GJS_DEBUG_OUTPUT = stderr
 # environment
 LANG = C
 # environment
-VSCODE_PID = 2682
+VSCODE_PID = 1566
 # variable set hash-table stats:
 # Load=103/1024=10%, Rehash=0, Collisions=8/133=6%
 
@@ -225,29 +225,15 @@ VSCODE_PID = 2682
 
 # Directories
 
-# . (device 2053, inode 6030413): 20 files, no impossibilities.
+# . (device 2053, inode 3936342): 7 files, no impossibilities.
 
-# 20 files, no impossibilities in 1 directories.
+# 7 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
 # No implicit rules.
 
 # Files
-
-data:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
-#  recipe to execute (from 'Makefile', line 16):
-	$(CC) Data.c $(CFLAGS) -c -o ./bin/object/data.o
-
-string:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
-#  recipe to execute (from 'Makefile', line 31):
-	$(CC) MyString.c $(CFLAGS) -c -o ./bin/object/mystring.o
 
 all: compile
 #  Command line target.
@@ -258,13 +244,6 @@ all: compile
 # variable set hash-table stats:
 # Load=0/32=0%, Rehash=0, Collisions=0/5=0%
 
-pp:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
-#  recipe to execute (from 'Makefile', line 28):
-	$(CC) Preprocessor.c $(CFLAGS) -c -o ./bin/object/preprocessor.o
-
 # Not a target:
 .SUFFIXES:
 #  Implicit rule search has not been done.
@@ -274,24 +253,17 @@ pp:
 # Not a target:
 Makefile:
 #  Implicit rule search has been done.
-#  Last modified 2022-03-10 11:59:30.574040018
+#  Last modified 2021-12-30 23:17:17.346443137
 #  File has been updated.
 #  Successfully updated.
-
-file:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
-#  recipe to execute (from 'Makefile', line 22):
-	$(CC) File.c $(CFLAGS) -c -o ./bin/object/file.o
 
 compile:
 #  Implicit rule search has not been done.
 #  Implicit/static pattern stem: ''
 #  File does not exist.
- 
 #  File has been updated.
 #  Needs to be updated (-q is set).
+ 
 # automatic
 # @ := compile
 # automatic
@@ -310,8 +282,8 @@ compile:
 # ? := 
 # variable set hash-table stats:
 # Load=8/32=25%, Rehash=0, Collisions=1/13=8%
-#  recipe to execute (from 'Makefile', line 40):
-	$(CC) Data.c MyString.c Parsing.c Errors.c Preprocessor.c Binary.c assembler.c $(CFLAGS) -o ./bin/assembler
+#  recipe to execute (from 'Makefile', line 23):
+	$(CC) main.c $(CFLAGS) -o executable
 
 # Not a target:
 .DEFAULT:
@@ -319,34 +291,20 @@ compile:
 #  Modification time never checked.
 #  File has not been updated.
 
-parsing:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
-#  recipe to execute (from 'Makefile', line 19):
-	$(CC) Parsing.c $(CFLAGS) -c -o ./bin/object/parsing.o
-
-err:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
-#  recipe to execute (from 'Makefile', line 25):
-	$(CC) Errors.c $(CFLAGS) -c -o ./bin/object/errors.o
-
 # files hash-table stats:
-# Load=11/1024=1%, Rehash=0, Collisions=0/25=0%
+# Load=5/1024=0%, Rehash=0, Collisions=0/19=0%
 # VPATH Search Paths
 
 # No 'vpath' search paths.
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 32 / storage = 273 B / avg = 8 B
-# current buf: size = 8162 B / used = 273 B / count = 32 / avg = 8 B
+# strcache buffers: 1 (0) / strings = 13 / storage = 112 B / avg = 8 B
+# current buf: size = 8162 B / used = 112 B / count = 13 / avg = 8 B
 
-# strcache performance: lookups = 47 / hit rate = 31%
+# strcache performance: lookups = 22 / hit rate = 40%
 # hash-table stats:
-# Load=32/8192=0%, Rehash=0, Collisions=1/47=2%
-# Finished Make data base on Thu Mar 10 12:00:51 2022
+# Load=13/8192=0%, Rehash=0, Collisions=1/22=5%
+# Finished Make data base on Mon Mar  7 13:47:20 2022
 
  

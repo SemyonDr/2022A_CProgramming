@@ -69,7 +69,7 @@ typedef struct InsInfo {
    int funct;              /* Instruction funct code. (0 if no code)*/
    int amodes_source;      /* [8]immideate-[4]direct-[2]d-index-[1]register*/
    int amodes_dest;
-} CmdInfo;
+} InsInfo;
 
 
 /* Defines node of linked list.
@@ -145,21 +145,37 @@ void DArrayIntAdd(DArrayInt* dArray, int data);
     dArray  -- Dynamic array to free. */
 void DArrayIntFree(DArrayInt* dArray);
 
-int IsCode(int attributes) {
-   return attributes & 8;
-}
+/* Checks if attribute "code" is set.
+   Arguments:
+    attributes -- attributes number from Symbol structure.
+   Returns:
+    0 -- attribute is set.
+    1 -- Attribute not set. */
+int IsCode(int attributes);
 
-int IsData(int attributes) {
-   return attributes & 4;
-}
+/* Checks if attribute "data" is set.
+   Arguments:
+    attributes -- attributes number from Symbol structure.
+   Returns:
+    0 -- attribute is set.
+    1 -- Attribute not set. */
+int IsData(int attributes);
 
-int IsExtern(int attributes) {
-   return attributes & 2;
-}
+/* Checks if attribute "extern" is set.
+   Arguments:
+    attributes -- attributes number from Symbol structure.
+   Returns:
+    0 -- attribute is set.
+    1 -- Attribute not set. */
+int IsExtern(int attributes);
 
-int IsEntry(int attributes) {
-   return attributes & 1;
-}
+/* Checks if attribute "entry" is set.
+   Arguments:
+    attributes -- attributes number from Symbol structure.
+   Returns:
+    0 -- attribute is set.
+    1 -- Attribute not set. */
+int IsEntry(int attributes);
 
 
 

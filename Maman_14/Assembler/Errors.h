@@ -21,11 +21,16 @@ enum ErrorsEnum {
     ErrMacro_Nested,             /* Macro defined inside macro. */
 
     ErrStm_Empty,                /* Statement is empty line. */
-    ErrStm_NotRecognized         /* Statement not recognized. */
+    ErrStm_NotRecognized,        /* Statement not recognized. */
+
+    ErrCmm_Before,               /* Comma before arguments. */
+    ErrCmm_Multiple,             /* Multiple commas between arguments. */
+    ErrCmm_Missing,              /* Missing comma between arguments. */
+    ErrCmm_After                 /* Comma after arguments. */
 };
 
 /* Structure that describes error in source file. */
-typedef struct {
+typedef struct Error {
     int source_line;    /* Line in not expanded source file where error is found. */
     int error_code;     /* Error code according to ErrorsEnum. */
     char* info;         /* Additional error info. */

@@ -21,11 +21,14 @@ void AddError(List* errors, int line, int errCode, char* info) {
     if (info != NULL) {
         /* Info string allocated on heap */
         er->info = CopyStringToHeap(info);
-        /* For readability Leading blanks are removed and
+        /* For readability leading blanks are removed and
            new line characters replaced with spaces. */
         RemoveLeadingBlanks(er->info);
-        ReplaceNewLine(er->info, ' ');
+        ReplaceNewLine(er->info, '\0');
     }
+    else
+        er->info = NULL;
+
     /* Adding error to the list. */
     ListAdd(errors, er);
 }
@@ -37,7 +40,7 @@ void AddError(List* errors, int line, int errCode, char* info) {
     Uses switch to print error description 
     according to error code. */
 void PrintError(Error* er) {
-    /*Printing line */
+    /*Printing line number */
     printf(" Line %d: ", er->source_line);
 
     /* Printing error explanation */
@@ -104,8 +107,31 @@ void PrintError(Error* er) {
         if (er->info != NULL)
             printf("\"%s\" <- ", er->info);
         printf("Unknown command.");
+        break;
 
-    
+    case ErrCmm_Before:
+        if (er->info != NULL)
+            printf("\"%s\" <- ", er->info);
+        printf("Illegal comma(s) before arguments. ");
+        break;
+
+    case ErrCmm_Multiple:
+        if (er->info != NULL)
+            printf("\"%s\" <- ", er->info);
+        printf("Multiple commas between arguments.");
+        break;
+
+    case ErrCmm_Missing:
+        if (er->info != NULL)
+            printf("\"%s\" <- ", er->info);
+        printf("Missing comma between arguments.");
+        break;
+
+    case ErrCmm_After:
+        if (er->info != NULL)
+            printf("\"%s\" <- ", er->info);
+        printf("Illegal comma(s) after arguments.");
+        break;
 
     default:
         break;
@@ -122,11 +148,13 @@ void PrintError(Error* er) {
 void PrintErrorsList(List* errors) {
     Error* er;
     ListNode* cur;
+    
     cur = errors->head;
+    printf("DEBUG: Printing [%d] errors:\n", errors->count);
     if (errors->count != 0) {
         while (cur != NULL) {
-            er = (Error*)(cur->data);
-            PrintError(er);
+            er = (Error*)(cur->data); /* Casting for readability. */
+            PrintError(er); /* Printing error. */
             cur = cur->next;
         }
     }
