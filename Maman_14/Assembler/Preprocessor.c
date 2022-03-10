@@ -202,7 +202,7 @@ char* GetMacroName(char* line, int defLineNum, List* errors) {
     }
     printf("DEBUG: \t\t\tName %s passed reserved check\n", name);
     /* Checking if name starts with a number. */
-    if (IsNumber(name[0])) {
+    if (IsDigit(name[0])) {
         AddError(errors, defLineNum, ErrMacro_NameNumber, name);
         free(name);
         return NULL;

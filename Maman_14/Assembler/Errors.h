@@ -26,7 +26,10 @@ enum ErrorsEnum {
     ErrCmm_Before,               /* Comma before arguments. */
     ErrCmm_Multiple,             /* Multiple commas between arguments. */
     ErrCmm_Missing,              /* Missing comma between arguments. */
-    ErrCmm_After                 /* Comma after arguments. */
+    ErrCmm_After,                /* Comma after arguments. */
+
+    ErrArg_NotANumber,           /* Expected a number. */
+    ErrArg_InvalidLabel          /* Symbol in argument is not a valid label. */   
 };
 
 /* Structure that describes error in source file. */

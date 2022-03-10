@@ -27,15 +27,11 @@ enum AdressingModesEnum {
 
 /* Structure that represents instruction argument.
    Can represent any kind of argument:
-   numeric           -- using value
-   label             -- using value
-   laber with index  -- using value and reg
-   r0 (register)     -- using reg  */
+    */
 typedef struct InsArg {
-   int amode;     /* Adressing mode according to AdressingModes enum. */
-   int value;     /* Numeric value. Represents integer value in immediate mode, or address
-                     (decimal) in direct and index modes. */
-   int reg;       /* Number of register (0-16). */
+   int amode;        /* Adressing mode according to AdressingModes enum. */
+   int val;          /* Number in immediate mode, or register number in register direct or direct index modes. */
+   char label[32];   /* If argument is a label label is saved in this field (direct and direct index modes). */
 } InsArg;
 
 /* Structure that represents an instruction. */

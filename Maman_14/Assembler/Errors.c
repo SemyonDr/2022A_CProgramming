@@ -133,6 +133,18 @@ void PrintError(Error* er) {
         printf("Illegal comma(s) after arguments.");
         break;
 
+    case ErrArg_NotANumber:
+        if (er->info != NULL)
+            printf("\"%s\" <- ", er->info);
+        printf("Number was expected.");
+        break;
+
+    case ErrArg_InvalidLabel:
+        if (er->info != NULL)
+            printf("\"%s\" <- ", er->info);
+        printf("Invalid symbol as argument.");
+        break;
+
     default:
         break;
     }

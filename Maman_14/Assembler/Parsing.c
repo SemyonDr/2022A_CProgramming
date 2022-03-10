@@ -2,11 +2,33 @@
 
 /* Returns 1 if character c is a number
    and 0 if it is not. */
-int IsNumber(char c) {
+int IsDigit(char c) {
     if (c >=48 && c <= 57)
         return 1;
     else
         return 0;
+}
+
+/* Returns 1 if line is a number
+   and 0 if it is not. */
+int IsNumber(char* s) {
+    int pos = 0;
+
+    /* Checking for leading sign. */
+    if (s[pos] == '+' || s[pos] == '-') {
+        if (s[pos] == '\0')
+            return 0;
+        else
+            pos++;
+    }
+
+    /* Checking rest of the number. */
+    while (s[pos] != '\0') {
+        if (s[pos] <= 48 || s[pos] >=57)
+            return 0;
+        pos++;
+    }
+    return 1;
 }
 
 /* Checks if string s contains only
@@ -383,3 +405,129 @@ List* GetArgs(char* line, int* pos, List* errors, int lineNum, DArrayInt* slr) {
 
     return args;
 }
+
+/* Parses a string that is a number. 
+   Assumes that string represents a number. */
+int ParseNumber(char* s) {
+    char sign = '+'; /* Character for storing number sign. */
+    int pos = -1; /* Position in digits string. */
+    int num = 0; /* Resulting number. */
+    int multiplier = 1; /* Represents 10^n. */
+    char* digits = s;   /* Line without sign character. */
+    
+
+    /* Checking if line begins with a sign. */
+    if (s[0] == '+' || s[0] == '-') {
+        digits = &(s[1]);
+    }
+
+    /* Moving position to last digit in string.
+       (pos initialised as -1) */
+    while(digits[pos] != '\0') {
+        pos++;
+    }
+
+    /* Going from end of the string to beginning converting
+       characters to digits and multiplying them by 10^n. */
+    while (pos != -1) {
+        num += (digits[pos]-48)*multiplier;
+        pos--;
+        multiplier *= 10;
+    }
+
+    /* Applying sign. */
+    if (sign == '-')
+        num = num*(-1);
+
+    return num;
+}
+
+/* -1 if not a register. */
+int ParseRegisterName(char* s) {
+    /* Checking if first character is 'r'. */
+    if (s[0] != 'r')
+        return -1;
+
+    /* Checking if 'r' isn't only character. */
+    if (s[1] == '\0')
+        return -1;
+
+    /* If string is rx where x is a number. */
+    if (s[2] == '\0' && IsDigit(s[1]))
+        return s[1] - 48; /* Returning x. */
+
+    /* If string is rxx where xx is a number. */
+    if (s[3] == '\0' && IsDigit(s[1]) && IsDigit(s[2])) {
+        int num = (s[1]-48)*10 + (s[2]-48); /* Coverting characters to int. */
+        if (num < 16) /* If number is valid register number */
+            return num; /* Returning xx. */
+    }
+        
+    /* If anything else it's not a register name. */
+    return -1;
+}
+
+/* Parses instruction argument.
+
+NULL if failed! */
+InsArg* ParseInsArg(char* arg, List* errors, int lineNum, DArrayInt* slr) {
+    InsArg* parg;   /* Parsed argument. */
+
+    /* Allocating argument structure. */
+    parg = (InsArg*)malloc(sizeof(InsArg));
+
+    /* Checking if argument is direct number. */
+    if (arg[0] == '#') {
+        if (arg[1] != '\0' && IsNumber(&(arg[1]))) {
+            parg->amode = am_direct; /* Setting adressing mode to direct. */
+            parg->val = ParseNumber(&(arg[1])); /* Parsing number (without a #) */
+            return parg;
+        }
+        else {
+            /* If arg starts with # it should be a number. */
+            AddError(errors, slr->data[lineNum], ErrArg_NotANumber, arg);
+            free(parg);
+            return NULL;
+        }
+    }
+
+    /* Checking if argument is a register if it starts with 'r'. */
+    if (arg[0] == 'r') {
+        /* Trying to parse register name. */
+        parg->val = ParseRegisterName(arg);
+        if (parg->val != -1) { /* Parsed successfully. */
+            parg->amode = am_rdirect; /* Setting adressing mode to register direct. */
+            return parg;
+        }
+    }
+
+    /* Now if argument isn't # number, or rxx register it is a label possibly with index. */ 
+    {
+        int pos = 0; /* Char position in arg. */
+        /* Copying label until end of argument, or [ ].
+           i.e. copying label name without indexer part. */
+        while (arg[pos] != '\0' && pos<MAX_LABEL_LEN && arg[pos] != '[') {
+            (parg->label)[pos] = arg[pos];
+            pos++;
+        }
+        /* Adding line termination character. */
+        (parg->label)[pos] = '\0';
+
+        /* Checking if label name is valid. */
+        if (!IsAz09(parg->label) || !IsDigit(parg->label[0])) {
+            AddError(errors, slr->data[lineNum], ErrArg_InvalidLabel, arg);
+            free(parg);
+            return NULL;
+        }
+
+        
+
+
+
+    }
+    
+
+
+
+}
+

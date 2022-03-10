@@ -24,7 +24,11 @@ enum LineTypeEnum {
 
 /* Returns 1 if character c is a number
    and 0 if it is not. */
-int IsNumber(char c);
+int IsDigit(char c);
+
+/* Returns 1 if line is a number
+   and 0 if it is not. */
+int IsNumber(char* s);
 
 /* Checks if string s contains only
    letter and number characters.
