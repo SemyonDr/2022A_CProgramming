@@ -6,7 +6,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Thu Mar 10 12:00:51 2022
+# Make data base, printed on Fri Mar 11 14:29:09 2022
 
 # Variables
 
@@ -79,7 +79,7 @@ PATH = /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/
 # environment
 GPG_AGENT_INFO = /run/user/1000/gnupg/S.gpg-agent:0:1
 # environment
-SESSION_MANAGER = local/deer-mint:@/tmp/.ICE-unix/1089,unix/deer-mint:/tmp/.ICE-unix/1089
+SESSION_MANAGER = local/deer-mint:@/tmp/.ICE-unix/1076,unix/deer-mint:/tmp/.ICE-unix/1076
 # environment
 XDG_RUNTIME_DIR = /run/user/1000
 # environment
@@ -97,9 +97,10 @@ XDG_SESSION_DESKTOP = cinnamon
 # environment
 SSH_AUTH_SOCK = /run/user/1000/keyring/ssh
 # environment
-GIO_LAUNCHED_DESKTOP_FILE_PID = 2682
+GIO_LAUNCHED_DESKTOP_FILE_PID = 4762
 # automatic
 %F = $(notdir $%)
+ 
 # environment
 DISPLAY = :0
 # environment
@@ -113,7 +114,7 @@ QT_QPA_PLATFORMTHEME = qt5ct
 # environment
 XDG_SEAT = seat0
 # environment
-SSH_AGENT_PID = 1158
+SSH_AGENT_PID = 1145
 # environment
 ORIGINAL_XDG_CURRENT_DESKTOP = X-Cinnamon
 # environment
@@ -149,7 +150,7 @@ SHLVL = 0
 # makefile (from 'Makefile', line 2)
 CC = gcc
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-5e3e36cf-874c-43f5-bd63-64fc45dcfd27.sock
+VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-7c8eb755-81e1-496a-9023-c66f448895eb.sock
 # environment
 XDG_SESSION_ID = c2
 # environment
@@ -213,9 +214,10 @@ GJS_DEBUG_OUTPUT = stderr
 # default
 .RECIPEPREFIX := 
 # environment
+ 
 LANG = C
 # environment
-VSCODE_PID = 2682
+VSCODE_PID = 4762
 # variable set hash-table stats:
 # Load=103/1024=10%, Rehash=0, Collisions=8/133=6%
 
@@ -289,7 +291,6 @@ compile:
 #  Implicit rule search has not been done.
 #  Implicit/static pattern stem: ''
 #  File does not exist.
- 
 #  File has been updated.
 #  Needs to be updated (-q is set).
 # automatic
@@ -347,6 +348,6 @@ err:
 # strcache performance: lookups = 47 / hit rate = 31%
 # hash-table stats:
 # Load=32/8192=0%, Rehash=0, Collisions=1/47=2%
-# Finished Make data base on Thu Mar 10 12:00:51 2022
+# Finished Make data base on Fri Mar 11 14:29:09 2022
 
  

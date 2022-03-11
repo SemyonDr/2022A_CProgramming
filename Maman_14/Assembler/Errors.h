@@ -29,7 +29,12 @@ enum ErrorsEnum {
     ErrCmm_After,                /* Comma after arguments. */
 
     ErrArg_NotANumber,           /* Expected a number. */
-    ErrArg_InvalidLabel          /* Symbol in argument is not a valid label. */   
+    ErrArg_InvalidLabel,         /* Symbol in argument is not a valid label. */   
+    ErrArg_LongSymbol,           /* Symbol in arguments is too long. */
+    ErrArg_MissingIndex,         /* In label with index [ opened, but index not privided. */
+    ErrArg_MissingBracket,       /* In label with index closing bracket is missing. */
+    ErrArg_InvalidIndex          /* In label with index index is not valid register name. */
+
 };
 
 /* Structure that describes error in source file. */

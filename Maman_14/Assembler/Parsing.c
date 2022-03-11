@@ -467,8 +467,124 @@ int ParseRegisterName(char* s) {
     return -1;
 }
 
-/* Parses instruction argument.
+/* Tries to get indexer from label argument.
+   Moves position to character after closing bracket.
+   Allocates resulting string on heap.
+   NULL if not found (brackets are empty or not exist).
+ */
+char* GetIndexer(char* arg, int* pos, int* failed, List* errors, int lineNum, DArrayInt* slr) {
+    char* indexer; /* Variable for holding indexer. */
+    int i =0; /* Indexer string iterator. */
+    int start = 0; /* Starting position of indexer name. */
+    int len = -1; /* Length of indexer name. */
 
+    /* Searching for opening bracket '['. */
+    while (arg[*pos] != '[' && arg[*pos] != '\0')
+        (*pos)++;
+
+    /* If opening bracket not present there is no indexer. */
+    if (arg[*pos] == '\0')
+        return NULL;
+
+    /* Setting name start character. */
+    start = (*pos) + 1;
+
+    /* Counting name length. */
+    while (arg[*pos] != ']' && arg[*pos] != '\0') {
+        (*pos)++;
+        len++;
+    }
+
+    /* If there is no name after opening bracket. */
+    if (len == 0) {
+        AddError(errors, slr->data[lineNum], ErrArg_MissingIndex, arg);
+        *failed = 1;
+        return NULL;
+    }
+
+    /* If ']' found advancing position to next character. */
+    if (arg[*pos] == ']')
+        (*pos)++;
+    else /* If there is no closing bracket, but name is present. */ {
+        AddError(errors, slr->data[lineNum], ErrArg_MissingBracket, arg);
+        *failed = 1;
+    }
+    
+    /* Allocating indexer string.*/
+    indexer = (char*)malloc(sizeof(char)*(len+1));
+    if (indexer == NULL) {
+        perror("Failed to allocate memory.");
+        exit(1);
+    }
+
+    /* Copying indexer */
+    while (i<len) {
+        indexer[i] = arg[start+i];
+        i++;
+    }
+    /* Adding termination character. */
+    indexer[i] = '\0';
+
+    return indexer;
+}
+
+/* Writes into provided structure, returns NULL if failed, or pointer to structure. */
+InsArg* ParseLabelArgument(char* arg, InsArg* parg, List* errors, int lineNum, DArrayInt* slr) {
+    int failed = 0; /* Flag that shows if errors were found while parsing label.
+                        Used for accumulating error codes before returning NULL from function. */
+    int pos = 0; /* Char position in arg. */
+    char* indexer; /* Variable for holding indexer part if present (content of [rx] brackets). */
+
+    /* Copying label until end of argument, or [ ].
+        i.e. copying label name without indexer part. */
+    while (arg[pos] != '\0' && pos<MAX_LABEL_LEN && arg[pos] != '[') {
+        (parg->label)[pos] = arg[pos];
+        pos++;
+    }
+    /* Adding line termination character. */
+    (parg->label)[pos] = '\0';
+
+    /* Checking if label name is valid. */
+    if (!IsAz09(parg->label) || !IsDigit(parg->label[0])) {
+        AddError(errors, slr->data[lineNum], ErrArg_InvalidLabel, arg);
+        failed = 1;
+    }
+
+    /* Checking if label is less than 31 character. */
+    if (pos == 31 && arg[pos] != '[' && arg[pos] != '\0') {
+        AddError(errors, slr->data[lineNum], ErrArg_LongSymbol, arg);
+        failed = 1;
+    }
+
+    /* Trying to get indexer. */
+    if ((indexer = GetIndexer(arg, &pos, &failed, errors, lineNum, slr)) != NULL) {
+        /* If indexer is present trying to parse it. */
+        parg->val = ParseRegisterName(indexer);
+        if (parg->val == -1) { /* If failed to parse. */
+            AddError(errors, slr->data[lineNum], ErrArg_InvalidIndex, arg);
+            failed = 1;
+        }
+        /* Freeing memory. */
+        free(indexer);
+        /* If index was found and parsed addressing mode is direct index. */
+        parg->amode = am_index;
+    }
+    else {
+        /* If no index present addressing mode is direct. */
+        parg->amode = am_direct;
+    }
+
+    /* If errors were found while parsing label argument returning NULL. */
+    if (failed) {
+        free(parg);
+        return NULL;
+    }
+    else
+    /* If label argument parsed succesfully. */
+        return parg;
+}
+
+/* Parses instruction argument.
 NULL if failed! */
 InsArg* ParseInsArg(char* arg, List* errors, int lineNum, DArrayInt* slr) {
     InsArg* parg;   /* Parsed argument. */
@@ -502,32 +618,6 @@ InsArg* ParseInsArg(char* arg, List* errors, int lineNum, DArrayInt* slr) {
     }
 
     /* Now if argument isn't # number, or rxx register it is a label possibly with index. */ 
-    {
-        int pos = 0; /* Char position in arg. */
-        /* Copying label until end of argument, or [ ].
-           i.e. copying label name without indexer part. */
-        while (arg[pos] != '\0' && pos<MAX_LABEL_LEN && arg[pos] != '[') {
-            (parg->label)[pos] = arg[pos];
-            pos++;
-        }
-        /* Adding line termination character. */
-        (parg->label)[pos] = '\0';
-
-        /* Checking if label name is valid. */
-        if (!IsAz09(parg->label) || !IsDigit(parg->label[0])) {
-            AddError(errors, slr->data[lineNum], ErrArg_InvalidLabel, arg);
-            free(parg);
-            return NULL;
-        }
-
-        
-
-
-
-    }
-    
-
-
-
+    return ParseLabelArgument(arg, parg, errors, lineNum, slr);
 }
 

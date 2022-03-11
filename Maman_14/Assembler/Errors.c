@@ -145,6 +145,30 @@ void PrintError(Error* er) {
         printf("Invalid symbol as argument.");
         break;
 
+    case ErrArg_LongSymbol:
+        if (er->info != NULL)
+            printf("\"%s\" <- ", er->info);
+        printf("Label is too long.");
+        break;
+
+    case ErrArg_MissingIndex:
+        if (er->info != NULL)
+            printf("\"%s\" <- ", er->info);
+        printf("Index not specified.");
+        break;    
+
+    case ErrArg_MissingBracket:    
+        if (er->info != NULL)
+            printf("\"%s\" <- ", er->info);
+        printf("Closing bracket is missing (']').");
+        break;
+
+    case ErrArg_InvalidIndex:
+        if (er->info != NULL)
+            printf("\"%s\" <- ", er->info);
+        printf("Expected register name (r0-r15).");
+
+
     default:
         break;
     }
