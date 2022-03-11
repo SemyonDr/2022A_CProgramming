@@ -166,7 +166,38 @@ void PrintError(Error* er) {
     case ErrArg_InvalidIndex:
         if (er->info != NULL)
             printf("\"%s\" <- ", er->info);
-        printf("Expected register name (r0-r15).");
+        printf("Expected register name as indexer (r0-r15).");
+        break;
+
+    case ErrArg_Extra:
+        if (er->info != NULL)
+            printf("\"%s\" <- ", er->info);
+        printf("Text after indexer not allowed.");
+        break;
+
+    case ErrIns_MissingArg:
+        if (er->info != NULL)
+            printf("\"%s\" <- ", er->info);
+        printf("Missing argument for instruction.");
+        break;
+
+    case ErrIns_ExtraArg:
+        if (er->info != NULL)
+            printf("\"%s\" <- ", er->info);
+        printf("Too many arguments.");
+        break;
+
+    case ErrIns_InvalidSrcAmode:
+        if (er->info != NULL)
+            printf("\"%s\" <- ", er->info);
+        printf("Unsupported source adressing mode.");
+        break;
+    
+    case ErrIns_InvalidDestAmode:
+        if (er->info != NULL)
+            printf("\"%s\" <- ", er->info);
+        printf("Unsupported destination adressing mode.");
+        break;
 
 
     default:

@@ -13,6 +13,8 @@ typedef struct ParsedCode {
     List* symbols;          /* Symbols table. */
 } ParsedCode;
 
+char* GetInsNameByCode(int insCode);
+
 Ins* ParseInstructionLine(char* line, List* errors, DArrayInt* slr, int lineNum);
 
 #endif

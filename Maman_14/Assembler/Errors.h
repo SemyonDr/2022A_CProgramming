@@ -28,12 +28,18 @@ enum ErrorsEnum {
     ErrCmm_Missing,              /* Missing comma between arguments. */
     ErrCmm_After,                /* Comma after arguments. */
 
-    ErrArg_NotANumber,           /* Expected a number. */
+    ErrArg_NotANumber,           /* Expected a number after #. */
     ErrArg_InvalidLabel,         /* Symbol in argument is not a valid label. */   
-    ErrArg_LongSymbol,           /* Symbol in arguments is too long. */
-    ErrArg_MissingIndex,         /* In label with index [ opened, but index not privided. */
+    ErrArg_LongSymbol,           /* Symbol in arguments is too long for a label. */
+    ErrArg_MissingIndex,         /* In label with index [ opened, but index not provided. */
     ErrArg_MissingBracket,       /* In label with index closing bracket is missing. */
-    ErrArg_InvalidIndex          /* In label with index index is not valid register name. */
+    ErrArg_InvalidIndex,         /* In label with index index is not a valid register name. */
+    ErrArg_Extra,                /* Text after indexer brackets [rx]. */
+
+    ErrIns_MissingArg,           /* Missing argument in instruction. */
+    ErrIns_ExtraArg,             /* Too many arguments. */
+    ErrIns_InvalidSrcAmode,      /* Source adressing mode does not exists for instucrion. */
+    ErrIns_InvalidDestAmode      /* Destination adressing mode does not exists for instruction. */ 
 
 };
 

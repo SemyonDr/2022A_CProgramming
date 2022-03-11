@@ -409,23 +409,25 @@ List* GetArgs(char* line, int* pos, List* errors, int lineNum, DArrayInt* slr) {
 /* Parses a string that is a number. 
    Assumes that string represents a number. */
 int ParseNumber(char* s) {
-    char sign = '+'; /* Character for storing number sign. */
-    int pos = -1; /* Position in digits string. */
+    char sign = '+'; /* Character for storing sign of the number. */
+    int pos = 0; /* Position in digits string. */
     int num = 0; /* Resulting number. */
     int multiplier = 1; /* Represents 10^n. */
     char* digits = s;   /* Line without sign character. */
-    
+
+    /* If string is empty, or doesn't exists. */
+    if (s[0] == '\0' || s == NULL)
+        return 0;
 
     /* Checking if line begins with a sign. */
     if (s[0] == '+' || s[0] == '-') {
         digits = &(s[1]);
+        sign = s[0];
     }
 
-    /* Moving position to last digit in string.
-       (pos initialised as -1) */
-    while(digits[pos] != '\0') {
+    /* Moving position to the last digit in the digits string. */
+    while(digits[pos+1] != '\0')
         pos++;
-    }
 
     /* Going from end of the string to beginning converting
        characters to digits and multiplying them by 10^n. */
@@ -503,8 +505,14 @@ char* GetIndexer(char* arg, int* pos, int* failed, List* errors, int lineNum, DA
     }
 
     /* If ']' found advancing position to next character. */
-    if (arg[*pos] == ']')
+    if (arg[*pos] == ']') {
         (*pos)++;
+        /* Checking for extra text after closing bracket. */
+        if (arg[*pos] != '\n' && arg[*pos] != '\0') {
+            AddError(errors, slr->data[lineNum], ErrArg_Extra, arg);
+            /* Not considered failure, but error will be registered. */
+        }
+    }
     else /* If there is no closing bracket, but name is present. */ {
         AddError(errors, slr->data[lineNum], ErrArg_MissingBracket, arg);
         *failed = 1;
@@ -545,7 +553,7 @@ InsArg* ParseLabelArgument(char* arg, InsArg* parg, List* errors, int lineNum, D
     (parg->label)[pos] = '\0';
 
     /* Checking if label name is valid. */
-    if (!IsAz09(parg->label) || !IsDigit(parg->label[0])) {
+    if (!IsAz09(parg->label) || IsDigit(parg->label[0])) {
         AddError(errors, slr->data[lineNum], ErrArg_InvalidLabel, arg);
         failed = 1;
     }
@@ -595,7 +603,7 @@ InsArg* ParseInsArg(char* arg, List* errors, int lineNum, DArrayInt* slr) {
     /* Checking if argument is direct number. */
     if (arg[0] == '#') {
         if (arg[1] != '\0' && IsNumber(&(arg[1]))) {
-            parg->amode = am_direct; /* Setting adressing mode to direct. */
+            parg->amode = am_immediate; /* Setting adressing mode to direct. */
             parg->val = ParseNumber(&(arg[1])); /* Parsing number (without a #) */
             return parg;
         }

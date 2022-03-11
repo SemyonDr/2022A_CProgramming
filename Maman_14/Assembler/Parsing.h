@@ -128,4 +128,8 @@ char* TryGetLabel(char* line, int* pos, char* label, int maxLen);
     List of stings of arguments.  */
 List* GetArgs(char* line, int* pos, List* errors, int lineNum, DArrayInt* slr);
 
+/* Parses instruction argument.
+NULL if failed! */
+InsArg* ParseInsArg(char* arg, List* errors, int lineNum, DArrayInt* slr);
+
 #endif

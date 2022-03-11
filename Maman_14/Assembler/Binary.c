@@ -1,5 +1,36 @@
 #include "Binary.h"
 
+/* DEBUG 
+   FOR PRINTING INSTRUCTION NAME BY CODE
+   Returns instruction name by given code. */
+char* GetInsNameByCode(int insCode) {
+    if (insCode <0 || insCode > 15)
+        return CopyStringToHeap("NaN");
+
+    char* insnames[16];
+    insnames[0] = "mov";
+    insnames[1] = "cmp";
+    insnames[2] = "add";
+    insnames[3] = "sub";
+
+    insnames[4] = "lea";
+    insnames[5] = "clr";
+    insnames[6] = "not";
+    insnames[7] = "inc";
+
+    insnames[8] = "dec";
+    insnames[9] = "jmp";
+    insnames[10] = "bne";
+    insnames[11] = "jsr";
+
+    insnames[12] = "red";
+    insnames[13] = "prn";
+    insnames[14] = "rts";
+    insnames[15] = "stop";
+    
+    return CopyStringToHeap(insnames[insCode]);
+}
+
 int GetInstructionCode(char* ins) {
     if (CompareStrings(ins, "mov"))
         return ins_mov;
@@ -40,15 +71,163 @@ int GetInstructionCode(char* ins) {
     return -1;
 }
 
+/* Return info about given instruction. */
+InsInfo* GetInstructionInfo(int code) {
+    InsInfo* info;
+
+    info = (InsInfo*)malloc(sizeof(InsInfo));
+    if(info == NULL) {
+        perror("Failed to allocate memory.");
+        exit(1);
+    }
+
+    switch (code)
+    {
+    case ins_mov:
+        info->ins = ins_mov;
+        info->opcode = 0;
+        info->funct = -1;
+        info->amodes_source = 1+2+4+8; /* 0,1,2,3 */
+        info->amodes_dest = 2+4+8; /* 1,2,3 */
+        break;
+    case ins_cmp:
+        info->ins = ins_cmp;
+        info->opcode = 1;
+        info->funct = -1;
+        info->amodes_source = 1+2+4+8; /* 0,1,2,3 */
+        info->amodes_dest = 1+2+4+8; /* 0,1,2,3 */
+        break;
+    case ins_add:
+        info->ins = ins_add;
+        info->opcode = 2;
+        info->funct = 10;
+        info->amodes_source = 1+2+4+8; /* 0,1,2,3 */
+        info->amodes_dest = 2+4+8; /* 1,2,3 */
+        break;
+    case ins_sub:
+        info->ins = ins_sub;
+        info->opcode = 2;
+        info->funct = 11;
+        info->amodes_source = 1+2+4+8; /* 0,1,2,3 */
+        info->amodes_dest = 2+4+8; /* 1,2,3 */
+        break;
+
+    case ins_lea:
+        info->ins = ins_lea;
+        info->opcode = 4;
+        info->funct = -1;
+        info->amodes_source = 2+4; /* 1,2 */
+        info->amodes_dest = 2+4+8; /* 1,2,3 */
+        break;
+    case ins_clr:
+        info->ins = ins_clr;
+        info->opcode = 5;
+        info->funct = 10;
+        info->amodes_source = 0; /* No source operand. */
+        info->amodes_dest = 2+4+8; /* 1,2,3 */
+        break;  
+    case ins_not:
+        info->ins = ins_not;
+        info->opcode = 5;
+        info->funct = 11;
+        info->amodes_source = 0; /* No source operand. */
+        info->amodes_dest = 2+4+8; /* 1,2,3 */
+        break;  
+    case ins_inc:
+        info->ins = ins_inc;
+        info->opcode = 5;
+        info->funct = 12;
+        info->amodes_source = 0; /* No source operand. */
+        info->amodes_dest = 2+4+8; /* 1,2,3 */
+        break;  
+
+    case ins_dec:
+        info->ins = ins_dec;
+        info->opcode = 5;
+        info->funct = 13;
+        info->amodes_source = 0; /* No source operand. */
+        info->amodes_dest = 2+4+8; /* 1,2,3 */
+        break;  
+    case ins_jmp:
+        info->ins = ins_jmp;
+        info->opcode = 9;
+        info->funct = 10;
+        info->amodes_source = 0; /* No source operand. */
+        info->amodes_dest = 2+4; /* 1,2 */
+        break;  
+    case ins_bne:
+        info->ins = ins_bne;
+        info->opcode = 9;
+        info->funct = 11;
+        info->amodes_source = 0; /* No source operand. */
+        info->amodes_dest = 2+4; /* 1,2 */
+        break;  
+    case ins_jsr:
+        info->ins = ins_jsr;
+        info->opcode = 9;
+        info->funct = 12;
+        info->amodes_source = 0; /* No source operand. */
+        info->amodes_dest = 2+4; /* 1,2 */
+        break;  
+
+    case ins_red:
+        info->ins = ins_red;
+        info->opcode = 12;
+        info->funct = -1;
+        info->amodes_source = 0; /* No source operand. */
+        info->amodes_dest = 2+4+8; /* 1,2,3 */
+        break;      
+    case ins_prn:
+        info->ins = ins_prn;
+        info->opcode = 13;
+        info->funct = -1;
+        info->amodes_source = 0; /* No source operand. */
+        info->amodes_dest = 1+2+4+8; /* 0,1,2,3 */
+        break;      
+    case ins_rts:
+        info->ins = ins_rts;
+        info->opcode = 14;
+        info->funct = -1;
+        info->amodes_source = 0; /* No source operand. */
+        info->amodes_dest = 0; /* No destination operand. */
+        break;      
+    case ins_stop:
+        info->ins = ins_stop;
+        info->opcode = 15;
+        info->funct = -1;
+        info->amodes_source = 0; /* No source operand. */
+        info->amodes_dest = 0; /* No destination operand. */
+        break;      
+    
+    default:
+        free(info);
+        return NULL;
+    }
+
+    return info;
+}
+
+int HasMode(int amodes, int adressingMode) {
+    /* This function explained by example. */
+    /* For example adressing mode is 2 and amodes are 0110=6*/
+    int i; /* Iterator. */
+    int mode_bin = 1; /* Binary representation of a mode. Starts as 0001 */
+    mode_bin = mode_bin << adressingMode; /* Making binary shift. Now mode_bin is 0100. */
+    /* Checking if mode is in amodes. */
+    return amodes & mode_bin; /* 0110 & 0100 = 0100 > 1 = true*/
+}
 
 
+/* DONT FORGET TO ADD REMOVING (FREE) OF ARGS ON POINTS OF FAILURE AND AT THE END!!!1111
+   ALSO SHOULD REMOVE INSTRUCTION INFO */
 Ins* ParseInstructionLine(char* line, List* errors, DArrayInt* slr, int lineNum) {
     int pos = 0; /* Position in line. */
     char word[MAX_STATEMENT_LEN+2]; /* Buffer for holding word from line. */
     char* res;  /* Result of getting the word. */
     Ins* ins;   /* Parsed instruction structure. */
     List* args; /* Instruction arguments as strings. */
-    InsInfo insinfo;   /* Info about instruction. */
+    InsInfo* insinfo;   /* Info about instruction. */
+    int num_args; /* Number of arguments for instruction. */
 
     {/* DEBUG PRINT ****************************************************** */
         char* line_copy = CopyStringToHeap(line);
@@ -64,6 +243,9 @@ Ins* ParseInstructionLine(char* line, List* errors, DArrayInt* slr, int lineNum)
         perror("Failed to allocate memory.");
         exit(1);
     }
+
+    ins->source = NULL;
+    ins->dest = NULL;
 
     /* Skipping label if present. */
     TryGetLabel(line, &pos, word, MAX_STATEMENT_LEN+1);
@@ -94,7 +276,82 @@ Ins* ParseInstructionLine(char* line, List* errors, DArrayInt* slr, int lineNum)
 
     printf("DEBUG: \t Instruction line broken down.\n");
 
-    return NULL;
+    /* Getting instruction info. */
+    insinfo = GetInstructionInfo(ins->ins);
+
+    printf("DEBUG: \t Instruction info is:\n");
+    printf("DEBUG: \t\t Name is %s\n", GetInsNameByCode(insinfo->ins));
+    printf("DEBUG: \t\t opcode is %d\n", insinfo->opcode);
+    printf("DEBUG: \t\t funct is %d\n", insinfo->funct);
+    printf("DEBUG: \t\t source amodes are %d\n", insinfo->amodes_source);
+    printf("DEBUG: \t\t dest amodes are %d\n", insinfo->amodes_dest);
+
+    /* Checking number of arguments that should be in instruction. */
+    if (insinfo->amodes_dest == 0)
+        num_args = 0;   /* If there is no destination argument there is no source argument. */
+    else {
+        if (insinfo->amodes_source == 0)
+            num_args = 1; /* Only destination argument. */
+        else
+            num_args = 2; /* Destination and source arguments. */
+    }
+
+    /* Checking number of arguments that were extracted from the line. */
+    /* Missing arguments. */
+    if (args->count < num_args) {
+        AddError(errors, slr->data[lineNum], ErrIns_MissingArg, line);
+            free(ins);
+            return NULL;
+    }
+    
+    /* Too many arguments. */
+    if (args->count > num_args) 
+        /* Too many arguments. Appropriate number of arguments will
+           be parsed, but error will be saved. */
+        AddError(errors, slr->data[lineNum], ErrIns_ExtraArg, line);
+
+
+    /* If instruction has 2 arguments: */
+    if (num_args == 2) {
+        /* Parsing arguments. */
+        ins->source = ParseInsArg(args->head->data, errors, lineNum, slr);
+        ins->dest = ParseInsArg(args->head->next->data, errors, lineNum, slr);
+        /* If parsing arguments failed. */
+        if (ins->source == NULL || ins->dest == NULL) {
+            free(ins);
+            return NULL;
+        }
+        /* Checking if entered modes are available for instuction arguments. */
+        if (!HasMode(insinfo->amodes_source, ins->source->amode)) {
+            AddError(errors, slr->data[lineNum], ErrIns_InvalidSrcAmode, line);
+            free(ins);
+            return NULL;
+        }
+        if (!HasMode(insinfo->amodes_dest, ins->dest->amode)) {
+            AddError(errors, slr->data[lineNum], ErrIns_InvalidDestAmode, line);
+            free(ins);
+            return NULL;
+        }
+    }
+    
+    /* If instruction has 1 argument it is always a destination argument. */
+    if (num_args == 1) {
+        /* Parsing arguments. */
+        ins->dest = ParseInsArg(args->head->data, errors, lineNum, slr);
+        /* If parsing arguments failed. */
+        if (ins->dest == NULL) {
+            free(ins);
+            return NULL;
+        }
+        /* Checking if entered modes are available for destination argument. */
+        if (!HasMode(insinfo->amodes_dest, ins->dest->amode)) {
+            AddError(errors, slr->data[lineNum], ErrIns_InvalidDestAmode, line);
+            free(ins);
+            return NULL;
+        }
+    }
+
+    return ins;
 
 }
 
