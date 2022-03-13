@@ -1,9 +1,4 @@
-#include <stdio.h>
-#include "Preprocessor.h"
-#include "Errors.h"
-#include "Data.h"
-#include "Preprocessor.h"
-#include "Binary.h"
+#include "assembler.h"
 
 PrintSLR(DArrayInt* slr) {
     int i;
@@ -52,6 +47,7 @@ int main(int argc, char** argv) {
        r13
     */
     char* line = CopyStringToHeap("label: jmp r17\n");
+    char* sline = "label: .string \"texttext\"";
 
     /* Initializing line reference array */
     source_lines_reference = CreateDArrayInt(32);
@@ -85,6 +81,7 @@ int main(int argc, char** argv) {
         printf("Failed to parse instruction line [%s]\n", line);
 
 
+    
 
 
     PrintErrorsList(errors);

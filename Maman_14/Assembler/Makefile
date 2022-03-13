@@ -37,4 +37,4 @@ string:
 # con.c -- file to be compiled
 # -o ./bin/assembler -- resulting executable
 compile:
-	$(CC) Data.c MyString.c Parsing.c Errors.c Preprocessor.c Binary.c assembler.c $(CFLAGS) -o ./bin/assembler
+	$(CC) Definitions.h Data.c MyString.c Parsing.c Errors.c Preprocessor.c Binary.c assembler.c $(CFLAGS) -o ./bin/assembler

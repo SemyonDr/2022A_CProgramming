@@ -31,7 +31,13 @@ char* GetInsNameByCode(int insCode) {
     return CopyStringToHeap(insnames[insCode]);
 }
 
-int GetInstructionCode(char* ins) {
+/* Gets instruction type according by instruction name.
+   Argument:
+    ins     -- String containing istruction name.
+   Returns:
+    Instruction number according to InstructionsEnum.
+    -1 if instruction name not recognized. */
+int GetInstructionType(char* ins) {
     if (CompareStrings(ins, "mov"))
         return ins_mov;
     if (CompareStrings(ins, "cmp"))
@@ -207,15 +213,7 @@ InsInfo* GetInstructionInfo(int code) {
     return info;
 }
 
-int HasMode(int amodes, int adressingMode) {
-    /* This function explained by example. */
-    /* For example adressing mode is 2 and amodes are 0110=6*/
-    int i; /* Iterator. */
-    int mode_bin = 1; /* Binary representation of a mode. Starts as 0001 */
-    mode_bin = mode_bin << adressingMode; /* Making binary shift. Now mode_bin is 0100. */
-    /* Checking if mode is in amodes. */
-    return amodes & mode_bin; /* 0110 & 0100 = 0100 > 1 = true*/
-}
+
 
 
 /* DONT FORGET TO ADD REMOVING (FREE) OF ARGS ON POINTS OF FAILURE AND AT THE END!!!1111
@@ -355,96 +353,268 @@ Ins* ParseInstructionLine(char* line, List* errors, DArrayInt* slr, int lineNum)
 
 }
 
-/* Assumes that pre-processed file exists.
-   Produces 4 tables:
-    instructions (structures)
-    data (structures)
-    external symbols
-    entry symbols
-   Also catches parsing errors.
-  */
-void ParseExpanded(char* source_file_name, DArrayInt* slr, ParsedCode* pcode, List* symbolsTable, List* errors) {
-    FILE* file; /* Expanded source file handler. */
-    char* full_fname; /* Buffer for holding full file name with extension. */
-    int full_fname_len; /* Length of filename with extension. */
-    char line[MAX_STATEMENT_LEN+2]; /* Buffer for holding line from file. */
-    int line_num = 0;   /* Number of line in expanded source file. */
-    int icount=100;     /* Instruction counter. */
-    int dcount=0;     /* Data counter. */
+/* Takes line with pos after ".string"  directive keyword.*/
+char* ParseStringDirectiveArgument(char* line, int* pos, List* errors, int lineNum, DArrayInt* slr ) {
+    int start; /* Position of the first character inside "". */
+    int len; /* Length of string inside "". */
+    int spos; /* Position inside of string between "". */
+    char* str; /* Parsed string. */
 
-    /* Opening expanded (preprocessed) file */
-    /* Allocating buffer for full file name */
-    full_fname_len = StringLen(source_file_name) + 3;
-    full_fname = (char*)malloc(sizeof(char)*(full_fname_len+1));
-    ConcatenateStrings(source_file_name, ".am", full_fname, full_fname_len);
-    file = fopen(full_fname, "r");
-    if (file == NULL) {
-        perror("Failed to open file.");
-        exit(2);
+    /* Skipping blanks. */
+    SkipBlank(line, pos);
+
+    /* Checking if line ended without an argument. */
+    if (line[*pos] == '\0') {
+        AddError(errors, slr->data[lineNum], ErrDt_StrNoArgument, line);
     }
 
-    /* Reading lines from file in a loop. */
-    while (fgets(line, MAX_STATEMENT_LEN+1, file) != NULL) {
-        int pos = 0; /* Position in line. */
-        char label[MAX_LABEL_LEN+1]; /* Buffer for holding statement label. */
-        char word[MAX_STATEMENT_LEN+2]; /* Buffer for holding word from line. */
-        int wordtype; /* Variable that stores IsReservedWord result. Allows to determine if line is a instruction, or directive, or neither. */
-        char* label_res; /* Variable for storing label reading result. */
-        char* res;  /* Variable for storing word reading result. */
-        
+    /* Checking if first character is ". */
+    if (line[*pos] != '"') {
+        AddError(errors, slr->data[lineNum], ErrDt_StrInvalidArg, line);
+        return NULL;
+    }
 
-        line_num++; /* Advancing line counter. Lines are numbered starting from 1. */
-        
-        /* Trying to get label before statement. */
-        label_res = TryGetLabel(line, &pos, label, MAX_LABEL_LEN);
+    /* Advancing position by 1 and marking start. */
+    (*pos)++;
+    start = *pos;
 
-        /* Getting next word */
-        res = GetNextWord(line, &pos, word, MAX_STATEMENT_LEN+1, NULL);
-
-        /* If there is nothing besides the label adding error and skipping line. */
-        /* If there was a label before empty line it will not be added to symbols table. */
-        if (res == NULL) {
-            if (label != NULL)
-                AddError(errors, slr->data[line_num], ErrStm_Empty, line);
-            else
-                AddError(errors, slr->data[line_num], ErrStm_Empty, NULL);
-            continue; /* Skipping the line. */
-        }
-
-        /* Checking if first (besides label) word of the line is an reserved word. */
-        wordtype = IsReservedWord(word);
-
-        /* If it's not a reserved word. */
-        if (wordtype == 0) {
-            AddError(errors, slr->data[line_num], ErrStm_NotRecognized, word);
-            continue; /* Skipping the line */
-        }
-
-        /* Checking if line is an instruction. */
-        if (wordtype == 1) {
-            /* If label exists adding it to symbols table. */
-
-
-
-            /* Parsing instruction */
-
-        }
-
-
-
+    /* Searching for closing " and counting length.*/
+    while (line[*pos] != '"' && line[*pos] != '\0') {
+        (*pos)++;
+        len++;
     }
     
+    /* If string wasn't closed. */
+    if (line[*pos] == '\0') {
+        AddError(errors, slr->data[lineNum], ErrDt_StrMissingClosing, line);
+        return NULL;
+    }
 
-    /* Closing the file. */
-    fclose(file);
+    /* Checking for extra text. Parsing will continue, but error will be saved. */
+    (*pos)++;
+    SkipBlank(line, pos);
+    if (!IsBlank(line[*pos]) && line[*pos] != '\0') {
+        AddError(errors, slr->data[lineNum], ErrDt_StrExtra, line);
+    }
+
+    /* Allocating result string. */
+    str = (char*)malloc(sizeof(char)*(len+1));
+    if (str == NULL) {
+        perror("Failed to allocate memory.");
+        exit(1);
+    }
+
+    /* Copying string content. */
+    for (spos=0; spos<len; spos++)
+        str[spos] = line[start+spos];
+
+    /* Adding termination character. */
+    str[spos] = '\0';
+
+    return str;
 }
 
-void ProduceBinary(char* source_file_name) {
-    /* Parse expanded */    
+DArrayInt* ParseDataDirectiveArgs(char* line, int* pos, List* errors, int lineNum, DArrayInt* slr) {
+    List* args;
+    DArrayInt* pargs;
+    ListNode* cur; /* List iterator. */
 
-    /* Make binary code (array of int) */
+    pargs = CreateDArrayInt(8);
 
-    /* write binary in requested format */
+    /* Getting arguments. */
+    args = GetArgs(line, &pos, errors, lineNum, slr);
 
-    /* write tables */
+    /* No arguments. */
+    if (args->count == 0) {
+        AddError(errors, slr->data[lineNum], ErrDt_DtNoArgument, line);
+        return NULL;
+    }
+
+    /* Parsing arguments */
+    cur = args->head;
+    while (cur != NULL) {
+        if (IsNumber(cur->data))
+            DArrayIntAdd(pargs, ParseNumber(cur->data));
+        else {
+            DArrayIntFree(pargs);
+            /* TODO!!! FREE ARGS ARRAY  !!!*/
+            return NULL;
+        }
+        cur = cur->next;
+    }
+
+    return pargs;
+}
+
+
+/* Determines type of the directive:
+   string, data, or extern/entry. 
+   Assumes that first word of the line after label starts with '.'.
+   Advances position to first blank character after directive name.
+   Arguments:
+    line    -- Line containing statement. 
+    pos     -- Position in line pointing to '.' before directive name.
+   Returns:
+    Directive type according to DirectivesEnum.
+    Returns -1 if statement not recognized) */
+int GetDirectiveType(char* line, int* pos) {
+    char* name[MAX_STATEMENT_LEN+2]; /* Buffer for holding word from line. */
+    char* res; /* Result of getting the word. */
+
+    /* Reading first word (after label). */
+    res = GetNextWord(line, pos, name, MAX_STATEMENT_LEN+1, NULL);
+    /* If there is no word. */
+    if (res == NULL)
+        return -1;
+
+    /* Checking directive names. */
+    if (CompareStrings(name, ".data"))
+        return dir_data;
+    if (CompareStrings(name, ".string"))
+        return dir_string;
+    if (CompareStrings(name, ".entry"))
+        return dir_entry;
+    if (CompareStrings(name, ".extern"))
+        return dir_extern;
+
+    return -1;
+}
+
+void AddSymbol(List* symbols, Symbol* new_smb, int lineNum, List* errors, DArrayInt* slr) {
+    ListNode* cur = symbols->head; /* List iterator. */
+
+    /* Searching if symbol already in the table. */
+    while (cur != NULL) {
+        /* Taking current iteration symbol from table. */
+        Symbol* cur_smb = cur->data; 
+        /* If symbol with the same name found */
+        if (CompareStrings(cur_smb->name, new_smb->name)) {
+            /* If symbol has attribute .extern */
+            if (IsExtern(cur_smb)) {
+                /* Cannot be re-defined as entry. */
+                if (IsEntry(new_smb)) {
+                    AddError(errors, slr->data[lineNum], ErrSmb_EntryExtern, new_smb->name);
+                    return;
+                }
+                /* Cannot be re-defined as code, or data, or another extern (which will be completely identical definition)*/
+                AddError(errors, slr->data[lineNum], ErrSmb_NameIdentical, new_smb->name);
+                return;
+            }
+            /* If existing symbol has attributes code or data
+               new symbol can only has attribute .entry, in every other context it will re-definition. */
+            if ((IsCode(cur_smb) || IsData(cur_smb)) && !IsEntry(new_smb)) {
+                AddError(errors, slr->data[lineNum], ErrSmb_NameIdentical, new_smb->name);
+                return;
+            }
+            /* If existing symbol has attribute .entry */
+            if (IsEntry(cur_smb)) {
+                /* New symbol can't be. extern. */
+                if (IsExtern(new_smb)) {
+                    AddError(errors, slr->data[lineNum], ErrSmb_EntryExtern, new_smb->name);
+                    return;
+                }
+                /* New symbol can't be also .entry (identical definition). */
+                if (IsEntry(new_smb)) {
+                    AddError(errors, slr->data[lineNum], ErrSmb_NameIdentical, new_smb->name);
+                    return;
+                }
+            }
+            /* In any other case (combinations code||data+entry, or entry+code||data) adding 
+               new attribute to existing symbol and deallocating new symbol as it is already in table. */ 
+            /* Adding attribute using binary OR operation. Example: if existing attribute is 1000 and new is 0001 result is 1001. */
+            cur_smb->attributes = cur_smb->attributes | new_smb->attributes; 
+            free(new_smb);
+            return;
+        }
+        /* Advancing iterator. */
+        cur = cur->next;
+    }
+
+    /* If symbol does not exist in table yet adding it. */
+    ListAdd(symbols, new_smb);
+}
+
+/* Allocates new symbol structure.
+   Makes new copy of label string, only MAX_LABEL_LEN first characters will be copied.
+   Arguments:
+    label       -- Label name string.
+    address     -- Address of instruction where symbol declared.
+    attribute   -- Attribute of the symbol in declaration line according to SymbolAttributesEnum.
+   Returns:
+    New Symbol structure. */ 
+Symbol* CreateSymbol(char* label, int address, int attribute) {
+    int pos = 0; /* Label string iterator. */
+    int one = 1; /* Binary number one.*/
+    /* Allocating structure. */
+    Symbol* smb = (Symbol*)malloc(sizeof(Symbol));
+    if (smb == NULL) {
+        perror("Failed to allocate memory.");
+        exit(1);
+    }
+    /* Setting attribute with binary shift. */
+    smb->attributes = one << attribute; 
+
+    /* Copying label name. */
+    while (label[pos] != '\0' && pos<32) {
+        (smb->name)[pos] = label[pos];
+        pos++;
+    }
+    /* Adding termination character. */
+    (smb->name)[pos] = '\0';
+
+    /* Setting address. */
+    smb->adress = address;
+
+    return smb;
+}
+
+/*  */
+void StatementToBinary(char* line, List* symbols, BinarySegment* code, BinarySegment* data, int lineNum, List* errors, DArrayInt* slr) {
+    int pos = 0; /* Position in line. */
+    char label[MAX_STATEMENT_LEN+2];  /* Buffer for holding label. */
+    int lptr; /* Variable for holding result of getting the label.*/
+
+    /* Trying to get the label. */
+    lptr = TryGetLabel(line, &pos, label, MAX_STATEMENT_LEN+1);
+
+    /* Checking length of a label. */
+    if (lptr != NULL && StringLen(label)>MAX_LABEL_LEN) {
+        /* If label is too long pretending it does not exist and adding error. */
+        lptr = NULL;
+        AddError(errors, slr->data[lineNum], ErrSmb_TooLong, label);
+    }
+
+    /* Skipping blanks. We should arrive to a name of a command. */
+    SkipBlank(line, pos);
+
+    /* If command starts with a dot checking if statement is a directive. */
+    if (line[pos] == '.') {
+        int dir_type; /* Variable for holding directive type. */
+        /* Trying to get directive type. pos will be advanced to first char after the name.*/
+        dir_type = GetDirectiveType(line, pos);
+        /* Checking if directive is recognized. */
+        if (dir_type == -1) {
+            AddError(errors, slr->data[lineNum], ErrDir_NotRecognized, line);
+            /* Instruction name cannot start with a dot, so if directive is not recognized
+               line is not an instruction either and cannot be parsed.*/
+            return;
+        }
+        /* If directive is .data. */
+        if (dir_type == dir_data) {
+            /* Getting data arguments (values). */
+            DArrayInt* values = ParseDataDirectiveArgs(line, &pos, errors, lineNum, slr);
+            /* If failed to parse args, or they do not exist. */
+            if (values == NULL)
+                return;
+            /* If line opened with label trying to save it to symbols table. */
+            if (lptr != NULL) {
+                Symbol* smb = CreateSymbol(label, NextSegmentAddress(data), att_data);
+                AddSymbol(symbols, smb, lineNum, errors, slr);
+            }
+            /* Writing .data argument values to binary data segment.*/
+            
+                
+        }
+    }
+
 }

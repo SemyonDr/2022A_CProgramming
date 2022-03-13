@@ -2,7 +2,8 @@
     #define PREPROCESSOR_H
 
 #include <stdio.h>
-
+#include "Definitions.h"
+#include "DataContainers.h"
 #include "Data.h"
 #include "Errors.h"
 #include "Parsing.h"

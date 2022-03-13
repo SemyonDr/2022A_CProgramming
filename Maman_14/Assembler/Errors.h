@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include "Definitions.h"
 #include "Data.h"
 #include "MyString.h"
 
@@ -39,7 +40,19 @@ enum ErrorsEnum {
     ErrIns_MissingArg,           /* Missing argument in instruction. */
     ErrIns_ExtraArg,             /* Too many arguments. */
     ErrIns_InvalidSrcAmode,      /* Source adressing mode does not exists for instucrion. */
-    ErrIns_InvalidDestAmode      /* Destination adressing mode does not exists for instruction. */ 
+    ErrIns_InvalidDestAmode,     /* Destination adressing mode does not exists for instruction. */ 
+
+    ErrDt_StrNoArgument,         /* No argument provided. */
+    ErrDt_StrInvalidArg,         /* .string argument is not a string. */
+    ErrDt_StrMissingClosing,     /* Closing " is missing in string. */
+    ErrDt_StrExtra,              /* Extra text after string argument. */
+    ErrDt_DtNoArgument,          /* No argument for .data directive. */
+
+    ErrDir_NotRecognized,        /* Directive not recognized. */
+
+    ErrSmb_TooLong,              /* Label is too long*/
+    ErrSmb_NameIdentical,        /* Found symbol that is already defined. */   
+    ErrSmb_EntryExtern           /* Symbol declared both as entry and extern. */
 
 };
 

@@ -276,14 +276,15 @@ int IsReservedWord(char* s) {
     return 0;
 }
 
-/* Tries to get label before assembly statement.
+/* 
+   Tries to get label before assembly statement.
    Label considered to be first word in line if it ends with ':' character.
    If label is found moves line position to character after ':'.
    If label wasn't found leaves position as it was.
    Arguments:
     line    -- Statement line (null-terminated).
     pos     -- Position in line. Assumed to be beggining of the line when function is called.
-    label   -- Buffer to hold label string.
+    label   -- Buffer to hold resulting label string.
     maxLen  -- Maximum length to read (without termination character).
    Returns:
     If label is found it will be written to label buffer and pointer will be returned.
@@ -296,11 +297,14 @@ char* TryGetLabel(char* line, int* pos, char* label, int maxLen) {
     res = GetNextWord(line, &_pos, label, MAX_STATEMENT_LEN+2, ":");
 
     /* Checking if first word was a label. */
-    if (res != NULL && line[_pos] == ':' && (IsBlankChar(line[_pos+1]) || line[_pos+1] == '\0')) {
+    if (res != NULL
+        && line[_pos] == ':' 
+        && (IsBlankChar(line[_pos+1]) || line[_pos+1] == '\0')) {
         *pos = _pos+1; /* Moving position to character after ':'. */
         return label;
     }
     else
+        /* Position wasn't moved. */
         return NULL;
 }
 

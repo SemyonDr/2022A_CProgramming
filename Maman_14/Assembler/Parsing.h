@@ -1,26 +1,13 @@
 #ifndef PARSING_H
     #define PARSING_H
-    /* Maximum length of a statement in symbols in assembly
-    source file not including end of the line \n symbol*/
-    #define MAX_STATEMENT_LEN 80
-    #define MAX_LABEL_LEN 31
-
 
 #include <stdlib.h>
 #include <stdio.h>
+#include "Definitions.h"
+#include "DataContainers.h"
 #include "Data.h"
 #include "MyString.h"
 #include "Errors.h"
-
-/* Types of lines in assembly source code. */
-enum LineTypeEnum {
-    LType_Undefined,    /* Unknown type. */
-    LType_Blank,        /* Empty line. */
-    LType_Comment,      /* Comment line. */
-    LType_MacroDef,     /* Line where macro name is defined. */
-    LType_MacroEnd,     /* End line of macro definition (endm). */
-    LType_MacroCall     /* Macro call string (macro name). */
-};
 
 /* Returns 1 if character c is a number
    and 0 if it is not. */
@@ -131,5 +118,7 @@ List* GetArgs(char* line, int* pos, List* errors, int lineNum, DArrayInt* slr);
 /* Parses instruction argument.
 NULL if failed! */
 InsArg* ParseInsArg(char* arg, List* errors, int lineNum, DArrayInt* slr);
+
+int ParseNumber(char* s);
 
 #endif

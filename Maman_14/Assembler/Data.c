@@ -126,42 +126,106 @@ void DArrayIntFree(DArrayInt* dArray) {
     free(dArray);
 }
 
-/* Checks if attribute "code" is set.
-   Arguments:
-    attributes -- attributes number from Symbol structure.
-   Returns:
-    0 -- attribute is set.
-    1 -- Attribute not set. */
-int IsCode(int attributes) {
-   return attributes & 8;
+/* Initializes BinarySegment dynamic array structure.
+   Returns pointer to BinarySegment allocated on heap. */
+BinarySegment* CreateBinary() {
+   /* Allocating structure. */
+   BinarySegment* bin = (BinarySegment*)malloc(sizeof(BinarySegment));
+   if (bin == NULL) {
+      perror("Failed to allocate memory.");
+      exit(1);
+   }
+
+   /* Setting initial values.*/
+   bin->base = 0;
+   bin->counter = 0;
+   bin->step = 64;
+   bin->capacity = bin->step;
+
+   /* Allocating data array. */
+   bin->words = (int*)malloc(sizeof(int)*(bin->capacity));
+   if (bin->words == NULL) {
+      perror("Failed to allocate memory.");
+      exit(1);
+   }
+
+   return bin;
 }
 
-/* Checks if attribute "data" is set.
+/* Adds new element to binary segment array.
+   Automatically expands capacity and advances counter.
    Arguments:
-    attributes -- attributes number from Symbol structure.
-   Returns:
-    0 -- attribute is set.
-    1 -- Attribute not set. */
-int IsData(int attributes) {
-   return attributes & 4;
+    bin     -- Pointer to binary segment structure.
+    val     -- Value to add.
+*/
+void AddBinary(BinarySegment* bin, int val) {
+   /* Checking if capacity should be expanded. */
+   if (bin->counter == (bin->capacity - 1)) {
+      int new_cap = bin->capacity + bin->step; /* New capacity. */
+      int* res; /* Result of reallocation. */
+      res = (int*)realloc(bin->words, sizeof(int)*new_cap); /* Reallocating words. */
+      if (res == NULL) {
+         perror("Failed to allocate memory.");
+         exit(1);
+      }
+      /* Setting new capacity. */
+      bin->capacity = new_cap;
+   }
+   
+   /* Writing new value */
+   (bin->words)[bin->counter] = val;
+   /* Advancing counter. */
+   (bin->counter)++;
 }
 
-/* Checks if attribute "extern" is set.
+/* Gets binary word from BinarySegment structure
+   by given address.
+   If adress is incorrect returns 0.
    Arguments:
-    attributes -- attributes number from Symbol structure.
+    bin  -- Binary segment structure.
+    adr  -- Address of word in binary segment.
    Returns:
-    0 -- attribute is set.
-    1 -- Attribute not set. */
-int IsExtern(int attributes) {
-   return attributes & 2;
+    Binary word value. If adr incorrect returns 0. */
+int GetBinary(BinarySegment* bin, int adr) {
+   /* Getting position in words array. */
+   int index = adr-(bin->base);
+   if (index >= 0 && index < bin->counter)
+      return (bin->words)[index];
+   else
+      return 0;
 }
 
-/* Checks if attribute "entry" is set.
+/* Sets binary word in BinarySegment structure.
+   Only changes value of existing word, does not add new words.
+   If address in incorrect does nothing.
    Arguments:
-    attributes -- attributes number from Symbol structure.
+    bin  -- Binary segment structure.
+    adr  -- Address of word in binary segment.
+    val  -- New value. */
+void SetBinary(BinarySegment* bin, int adr, int val) {
+   /* Getting position in words array. */
+   int index = adr-(bin->base);
+   if (index >= 0 && index < bin->counter)
+      (bin->words)[index] = val;
+}
+
+
+/* Frees memory occupied by binary segment structure.
+   Frees data and removes structure itself.
+   Arguments:
+    bin  -- Binary segment structure. */
+void FreeBinary(BinarySegment* bin) {
+   if (bin->words != NULL)
+      free(bin->words);
+
+   free(bin);
+}
+
+/* Returns next address in binary segment pointed by counter.
+   Arguments:
+    bin  -- Binary segment structure.
    Returns:
-    0 -- attribute is set.
-    1 -- Attribute not set. */
-int IsEntry(int attributes) {
-   return attributes & 1;
+    Next address (bin->base + bin->counter). */
+int NextSegmentAddress(BinarySegment* bin) {
+    return (bin->base)+(bin->counter);
 }

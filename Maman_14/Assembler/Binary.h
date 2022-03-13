@@ -2,6 +2,8 @@
     #define BINARY_H
 
 #include <stdio.h>
+#include "Definitions.h"
+#include "DataContainers.h"
 #include "MyString.h"
 #include "Data.h"
 #include "Errors.h"

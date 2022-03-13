@@ -1,72 +1,7 @@
 #ifndef DATA_H
     #define DATA_H
 
-/* Structure that describes info about macro.*/
-typedef struct MacroInfo {
-    char* name;  /* Macro name */
-    long body_pos; /* Index position in file where macro body starts. */
-    int body_line_num; /* Number of line in source file where macro body starts. */
-    int num_lines; /* Length of macro body definition in lines (excluding name line and endm line) */    
-} MacroInfo;
-
-/* Enumeration of processor Instructions. */
-enum InstructionsEnum {
-   ins_mov, ins_cmp, ins_add, ins_sub,
-   ins_lea, ins_clr, ins_not, ins_inc,
-   ins_dec, ins_jmp, ins_bne, ins_jsr,
-   ins_red, ins_prn, ins_rts, ins_stop
-};
- 
-/* Enumeration of adressing modes for instruction argument. */
-enum AdressingModesEnum {
-   am_immediate,  /* Immediate */
-   am_direct,     /* Direct */
-   am_index,      /* Index */
-   am_rdirect     /* Register direct */
-};
-
-/* Structure that represents instruction argument.
-   Can represent any kind of argument:
-    */
-typedef struct InsArg {
-   int amode;        /* Adressing mode according to AdressingModes enum. */
-   int val;          /* Number in immediate mode, or register number in register direct or direct index modes. */
-   char label[32];   /* If argument is a label label is saved in this field (direct and direct index modes). */
-} InsArg;
-
-/* Structure that represents an instruction. */
-typedef struct Ins {
-   int ins;          /* Instruction according to InstructionsEnum */
-   InsArg* source;   /* Source argument. */
-   InsArg* dest;     /* Destination argument. */
-} Ins;
-
-/* Structure that represents element of symbols table. */
-typedef struct Symbol {
-   char name[32];    /* Symbol label. */
-   int adress;       /* Address represented by label (decimal) */
-   int attributes;   /* [8]code-[4]data-[2]extern-[1]entry*/
-} Symbol;
-
-/* Structure for holding pair of label and pointer
-   to instuction argument where label is mentioned in code. 
-   Together with symbols table allows to resolve label
-   arguments. */
-typedef struct UnresolvedArgument {
-   char name[32];    /* Label name. */
-   InsArg* arg;      /* Pointer to argument where label is used. */
-} UnresolvedArgument;
-
-/* Represents general info about an instruction
-   and its structure. */
-typedef struct InsInfo {
-   int ins;                /* Instruction number according to InstructionsEnum*/
-   int opcode;             /* Instruction opcode */
-   int funct;              /* Instruction funct code. (0 if no code)*/
-   int amodes_source;      /* [8]immideate-[4]direct-[2]d-index-[1]register*/
-   int amodes_dest;
-} InsInfo;
-
+#include "Definitions.h"
 
 /* Defines node of linked list.
    Data is stored as a pointer.
@@ -95,7 +30,7 @@ typedef struct List {
    capacity, or use function to add elements one after another in
    which case array will be expanded automatically.
     */
-typedef struct {
+typedef struct DArrayInt {
    int* data;  /* Array holding data. */
    int size; /* Size of data array. */
    int step; /* Expansion step in cells. */
@@ -141,38 +76,66 @@ void DArrayIntAdd(DArrayInt* dArray, int data);
     dArray  -- Dynamic array to free. */
 void DArrayIntFree(DArrayInt* dArray);
 
-/* Checks if attribute "code" is set.
+/* Type of dynamic array for storing
+   binary representation of the code or data
+   segments. 
+   Structure should be created by calling CreateBinary().
+   Elements should be added by calling AddBinary()
+   and array will be expanded automatically and counter will be increased.
+   Elemements can be read by calling GetBinary() and set by SetBinary().
+   Memory can be freed by calling FreeBinary().
+    */
+typedef struct BinarySegment {
+   int base;     /* Address of first word in memory. */
+   int counter;  /* Offset from base pointing to empty word after last added word. (also word counter) */
+   /* Base+counter form an adress of a word in memory. */
+   int* words;   /* Array for storing binary words. */
+   int step;     /* Step of array expansion in sizeof(int). */
+   int capacity; /* Current capacity of the array.*/
+} BinarySegment;
+
+/* Initializes BinarySegment dynamic array structure.
+   Returns pointer to BinarySegment allocated on heap. */
+BinarySegment* CreateBinary();
+
+/* Adds new element to binary segment array.
+   Automatically expands capacity and advances counter.
    Arguments:
-    attributes -- attributes number from Symbol structure.
-   Returns:
-    0 -- attribute is set.
-    1 -- Attribute not set. */
-int IsCode(int attributes);
+    bin     -- Pointer to binary segment structure.
+    val     -- Value to add.
+*/
+void AddBinary(BinarySegment* bin, int val);
 
-/* Checks if attribute "data" is set.
+/* Gets binary word from BinarySegment structure
+   by given address.
+   If adress is incorrect returns 0.
    Arguments:
-    attributes -- attributes number from Symbol structure.
+    bin  -- Binary segment structure.
+    adr  -- Address of word in binary segment.
    Returns:
-    0 -- attribute is set.
-    1 -- Attribute not set. */
-int IsData(int attributes);
+    Binary word value. If adr incorrect returns 0. */
+int GetBinary(BinarySegment* bin, int adr);
 
-/* Checks if attribute "extern" is set.
+/* Sets binary word in BinarySegment structure.
+   Only changes value of existing word, does not add new words.
+   If address in incorrect does nothing.
    Arguments:
-    attributes -- attributes number from Symbol structure.
-   Returns:
-    0 -- attribute is set.
-    1 -- Attribute not set. */
-int IsExtern(int attributes);
+    bin  -- Binary segment structure.
+    adr  -- Address of word in binary segment.
+    val  -- New value. */
+void SetBinary(BinarySegment* bin, int adr, int val);
 
-/* Checks if attribute "entry" is set.
+
+/* Frees memory occupied by binary segment structure.
+   Frees data and removes structure itself.
    Arguments:
-    attributes -- attributes number from Symbol structure.
+    bin  -- Binary segment structure. */
+void FreeBinary(BinarySegment* bin);
+
+/* Returns next address in binary segment pointed by counter.
+   Arguments:
+    bin  -- Binary segment structure.
    Returns:
-    0 -- attribute is set.
-    1 -- Attribute not set. */
-int IsEntry(int attributes);
-
-
-
+    Next address (bin->base + bin->counter). */
+int NextSegmentAddress(BinarySegment* bin);
 #endif

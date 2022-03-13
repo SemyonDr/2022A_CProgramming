@@ -1,0 +1,17 @@
+CreateBinary() {
+	LoopTroughSourceCode {
+		label GetLabel();
+		linetype StatementToBinary(ic, dc, code, data, label reference) {
+					if (line starts with .)
+						GetDirectiveType
+						ParseLine()
+					TryGetInstructionName
+				 	ParseLine()
+				 	ConvertCodeToBinary() { label reference }
+					ConvertDataToBinary()
+		}
+		if (linetype entry or extern and have label)
+			print warning
+		if (have label) add label to symbols
+	}
+}

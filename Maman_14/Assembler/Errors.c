@@ -199,6 +199,59 @@ void PrintError(Error* er) {
         printf("Unsupported destination adressing mode.");
         break;
 
+    case ErrDt_StrNoArgument:
+        if (er->info != NULL)
+            printf("\"%s\" <- ", er->info);
+        printf("No argument provided for .string directive.");
+        break;
+
+    case ErrDt_StrInvalidArg:
+        if (er->info != NULL)
+            printf("\"%s\" <- ", er->info);
+        printf("Expected \"string\" as argument.");
+        break;
+
+    case ErrDt_StrMissingClosing:
+        if (er->info != NULL)
+            printf("\"%s\" <- ", er->info);
+        printf("Closing \" is missing.");
+        break;
+
+    case ErrDt_StrExtra:
+        if (er->info != NULL)
+            printf("\"%s\" <- ", er->info);
+        printf("Extra text after argument.");
+        break;
+
+    case ErrDt_DtNoArgument:
+        if (er->info != NULL)
+            printf("\"%s\" <- ", er->info);
+        printf("Expected argument for .data directive.");
+        break;
+
+    case ErrDir_NotRecognized:
+        if (er->info != NULL)
+            printf("\"%s\" <- ", er->info);
+        printf("Directive not recognized.");
+        break;
+
+    case ErrSmb_TooLong:
+        if (er->info != NULL)
+            printf("\"%s\" <- ", er->info);
+        printf("Label is too long. Maximum %d characters allowed.", MAX_LABEL_LEN);
+        break;
+
+    case ErrSmb_NameIdentical:
+        if (er->info != NULL)
+            printf("\"%s\" <- ", er->info);
+        printf("Label already defined.");
+        break;
+
+    case ErrSmb_EntryExtern:
+        if (er->info != NULL)
+            printf("\"%s\" <- ", er->info);
+        printf("Label cannot be defined as .entry and .extern simultaniously.");
+        break;
 
     default:
         break;
