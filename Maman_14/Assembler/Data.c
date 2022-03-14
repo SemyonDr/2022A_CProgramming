@@ -52,78 +52,103 @@ void ListAdd(List* list, void* data) {
     }
 }
 
+/* Frees memory occupied by list and its data.
+   Frees every data field, every node and list 
+   itself.*/
+void FreeListAndData(List* list) {
+    if (list != NULL) {
+        if (list->count >0) {
+            ListNode* prev; /* Node before cur node. */
+            ListNode* cur = list->head; /* Iterator. */
+            while (cur != NULL) {
+                prev = cur; /* Referencing previous node. */
+                cur = cur->next; /* Advancing iterator. */
+                free(prev->data); /* Freeing data. */
+                free(prev); /* Freeing node. */
+            }
+            free(list); /* Freeing list structure. */
+        }
+        /* If there is no nodes. */
+        else {
+            /* Freeing list structure. */
+            free(list);
+            return;
+        }
+    }
+}
+
 /* Creates dynamic array of integer type.
    Arguments:
     step    -- Expansion step in cells.
    Returns:
-    New dinamic array of size */
-DArrayInt* CreateDArrayInt(int step) {
+    New dinamic array of size equal step. */
+DynArr* CreateDynArr(int step) {
     /* Allocating structure */
-    DArrayInt* ar = (DArrayInt*)malloc(sizeof(DArrayInt));
-    if (ar == NULL) {
+    DynArr* arr = (DynArr*)malloc(sizeof(DynArr));
+    if (arr == NULL) {
         perror("Failed to allocate memory");
         exit(1);
     }
 
     /* Allocating data array */
-    ar->data = (int*)malloc(sizeof(int)*step);
-    if (ar->data == NULL) {
+    arr->data = (int*)malloc(sizeof(int)*step);
+    if (arr->data == NULL) {
         perror("Failed to allocate memory");
         exit(1);
     }
     
     /* Setting initial values */
-    ar->count = 0;
-    ar->step = step;
-    ar->size = step;
+    arr->count = 0;
+    arr->step = step;
+    arr->size = step;
 
-    return ar;
+    return arr;
 }
 
 /* Expands dynamic integer array by one step.
    Arguments:
-    dArray  -- Dynamic array for expansion. */
-void ExpandDArrayInt(DArrayInt* dArray) {
+    arr  -- Dynamic array for expansion. */
+void ExpandDynArr(DynArr* arr) {
     int newSize; /* New array size */
     int* result; /* Resulting data pointer after reallocation. */
 
     /* Expanding data array */
-    newSize = (dArray->size)+dArray->step;
-    result = (int*)realloc(dArray->data, sizeof(int)*newSize);
+    newSize = (arr->size)+arr->step;
+    result = (int*)realloc(arr->data, sizeof(int)*newSize);
     if (result == NULL) {
         perror("Failed to allocate memory");
         exit(1);
     }
 
     /* Setting new properties */
-    dArray->data = result;
-    dArray->size = newSize;
+    arr->data = result;
+    arr->size = newSize;
 }
 
 /* Writes data to dynamic array at position ->count
    and increases this counter.
    Arguments:
-    dArray  -- Dynamic array.
+    arr     -- Dynamic array.
     data    -- New data element. */
-void DArrayIntAdd(DArrayInt* dArray, int data) {
+void AddDynArr(DynArr* arr, int data) {
     /* Checking if array needs expansion. */
-    if (dArray->count == dArray->size)
-        ExpandDArrayInt(dArray);
+    if (arr->count == arr->size)
+        ExpandDArrayInt(arr);
     
     /* Writing data */
-    (dArray->data)[dArray->count] = data;
-    (dArray->count)++;
+    (arr->data)[arr->count] = data;
+    (arr->count)++;
 }
 
 /* Frees memory allocated for dynamic array.
    Removes data and structure.
    Arguments:
-    dArray  -- Dynamic array to free. */
-void DArrayIntFree(DArrayInt* dArray) {
+    arr  -- Dynamic array to free. */
+void FreeDynArr(DynArr* arr) {
     /* Removing data. */
-    free(dArray->data);
+    free(arr->data);
     /* Removing structure. */
-    free(dArray);
+    free(arr);
 }
 
 /* Initializes BinarySegment dynamic array structure.

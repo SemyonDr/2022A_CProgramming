@@ -163,7 +163,7 @@ int IsLineMacroCall(char* line, List* macros) {
         If name starts with a number.
         If name contains only numbers and letters.
     If errors found, except for extra text, NULL is returned. */
-char* GetMacroName(char* line, int defLineNum, List* errors) {
+char* GetMacroName(char* line, int defLineNum, Errors* errors) {
     int pos = 0; /* Position in line */
     /* Buffer for reading words from definition line.
        +2 for temination and new line characters. */
@@ -183,34 +183,34 @@ char* GetMacroName(char* line, int defLineNum, List* errors) {
     }
     else { /* Name not defined */
         printf("DEBUG: \t\t\tName not defined.");
-        AddError(errors, defLineNum, ErrMacro_NameNotDefined, NULL);
+        AddErrorManual(errors, defLineNum, ErrMacro_NameNotDefined, line, NULL);
         return NULL;
     }
 
     /* Checking for extra symbols in macro definition */
     /* Extra symbols will be ignored, but error will be displayed. */
     if (GetNextWord(line, &pos, word, MAX_STATEMENT_LEN+1, NULL) != NULL) { 
-        AddError(errors, defLineNum, ErrMacro_ExtraDef, line);
+        AddErrorManual(errors, defLineNum, ErrMacro_ExtraDef, line, NULL);
     }
     printf("DEBUG: \t\t\tName %s finished extra check\n", name);
     /* Checking if name is reserved assembly word */
     if (IsReservedWord(name)) {
         printf("DEBUG: \t\t\tTurns out %s is a reserved word\n", name);
-        AddError(errors, defLineNum, ErrMacro_NameReserved, name);
+        AddErrorManual(errors, defLineNum, ErrMacro_NameReserved, line, name);
         free(name);
         return NULL;
     }
     printf("DEBUG: \t\t\tName %s passed reserved check\n", name);
     /* Checking if name starts with a number. */
     if (IsDigit(name[0])) {
-        AddError(errors, defLineNum, ErrMacro_NameNumber, name);
+        AddErrorManual(errors, defLineNum, ErrMacro_NameNumber, line, NULL);
         free(name);
         return NULL;
     }
     printf("DEBUG: \t\t\tName %s passed number check\n", name);
     /* Checking if name contains only numbers and letters */
     if (!IsAz09(name)) {  
-        AddError(errors, defLineNum, ErrMacro_NameIllegal, name);
+        AddErrorManual(errors, defLineNum, ErrMacro_NameIllegal, line, NULL);
         free(name);
         return NULL;
     }
@@ -249,7 +249,7 @@ char* GetMacroName(char* line, int defLineNum, List* errors) {
       was incorrect. Number of lines is returned so source file line counter migth be correctly advanced
       even if macro is incorrect.
 */
-MacroInfo* GetMacroInfo(FILE** source, int* num_lines, char* defLine, int defLineNum, List* errors) {
+MacroInfo* GetMacroInfo(FILE** source, int* num_lines, char* defLine, int defLineNum, Errors* errors) {
     MacroInfo* info; /* Pointer for storing macro info. */
     char line[MAX_STATEMENT_LEN+2]; /* Buffer for holding line read from source file. */
     int pos = 0; /* Line iterator. */
@@ -297,7 +297,7 @@ MacroInfo* GetMacroInfo(FILE** source, int* num_lines, char* defLine, int defLin
 
         /* Checking for nested macro definitions. */
         if (IsLineMacroDef(line)) {
-            AddError(errors, defLineNum+(*num_lines), ErrMacro_Nested, NULL);
+            AddErrorManual(errors, defLineNum+(*num_lines), ErrMacro_Nested, NULL, NULL);
             open_tags++;
             failed = 1;
         }    
@@ -320,7 +320,7 @@ MacroInfo* GetMacroInfo(FILE** source, int* num_lines, char* defLine, int defLin
     pos += 4; /* Skipping "endm" */
     if (GetNextWord(line, &pos, word, MAX_STATEMENT_LEN+1, NULL) != NULL) {
         printf("DEBUG: \t\tExtra ater endm: [%s]\n", line);
-        AddError(errors, defLineNum+*num_lines+1, ErrMacro_ExtraDefEnd, line);
+        AddErrorManual(errors, defLineNum+*num_lines+1, ErrMacro_ExtraDefEnd, line, NULL);
     }
 
     /* Writing number of line to info. */
@@ -357,7 +357,7 @@ MacroInfo* GetMacroInfo(FILE** source, int* num_lines, char* defLine, int defLin
     adds macro info to the macros list.
     Uses returned lines value from GetMacroInfo to return number of line after macro.
     Assumes that arguments are correct and does not check them. */
-int RegisterMacroInfo(FILE** source, List* macros, char* defLine, int defLineNum, List* errors) {
+int RegisterMacroInfo(FILE** source, List* macros, char* defLine, int defLineNum, Errors* errors) {
     MacroInfo* info = NULL; /* Variable to store macro info. */
     int num_lines; /* Number of lines in macro body not counting open/close tags. */
 
@@ -377,7 +377,7 @@ int RegisterMacroInfo(FILE** source, List* macros, char* defLine, int defLineNum
             printf("DEBUG: \tMacro %s registered\n", info->name);
         }
         else { /* If macro already exists. */
-            AddError(errors, defLineNum, ErrMacro_NameIdentical, info->name);
+            AddErrorManual(errors, defLineNum, ErrMacro_NameIdentical, defLine, info->name);
         }
     }
     else {
@@ -395,7 +395,6 @@ int RegisterMacroInfo(FILE** source, List* macros, char* defLine, int defLineNum
     source      -- Pointer to source file hanler.
     target      -- Pointer to target (expanded) file handler.
     srcPos      -- Current position in source file (position after macro call line)
-    slRef       -- Source line reference array.
     callLine    -- Line of macro call (first word is a macro name)
     callLineNum -- Number of a call line in source file.
     macros      -- List of registered macros.
@@ -412,7 +411,7 @@ int RegisterMacroInfo(FILE** source, List* macros, char* defLine, int defLineNum
     Checks if there were text after macro name in call line. Text will be ignored and macro expanded,
     but error will be registered.
     Assumes that provided arguments are correct and does not check them. */
-void ExpandMacro(FILE** source, FILE** target, long srcPos, DArrayInt* slRef, char* callLine, int callLineNum, List* macros, List* errors) {
+void ExpandMacro(FILE** source, FILE** target, long srcPos, char* callLine, int callLineNum, List* macros, List* errors) {
     int i; /* Line terator */
     MacroInfo* minfo; /* Variable for storing found macro info. */
     int pos =0; /* Position in line. */
@@ -427,7 +426,7 @@ void ExpandMacro(FILE** source, FILE** target, long srcPos, DArrayInt* slRef, ch
 
     /* Checking if there is text after macro name. */
     if (GetNextWord(callLine, &pos, word, MAX_STATEMENT_LEN+1, NULL) != NULL)
-        AddError(errors, callLineNum, ErrMacro_ExtraCall, callLine);
+        AddErrorManual(errors, callLineNum, ErrMacro_ExtraCall, callLine, NULL);
 
     /* Copying macro body lines to target file. */
 
@@ -444,7 +443,7 @@ void ExpandMacro(FILE** source, FILE** target, long srcPos, DArrayInt* slRef, ch
             /* Writing line to target file */
             fputs(mline, *target);
             /* Saving reference to source line number*/
-            DArrayIntAdd(slRef, (minfo->body_line_num)+i);
+            AddLineReference(errors, (minfo->body_line_num)+i);
         }
     }
 
@@ -480,7 +479,6 @@ void FreeMacrosList(List* macros) {
    Removes comments and blank lines and expands macros.
    Arguments:
     sourceFileName      -- Name of source file without extension.
-    SourceLineReference -- Array of source line references.
     errors              -- List of errors.
    Returns:
     Source line reference.
@@ -490,7 +488,7 @@ void FreeMacrosList(List* macros) {
     Opens source file for reading and target (expanded) file for writing.
     Reads source file line by line and uses functions from Preprocessor.h
     to determine line type:
-     - Empty and comments lines will not be copied to target.
+     - If empty or comment line will not be copied to target.
      - If line is macro definition RegisterMacroInfo will be called.
      - If line is a macro call (existing macro name) lines of macro body will be copied to target file.
      - If line is something else it will be copied to target as it is.
@@ -498,7 +496,7 @@ void FreeMacrosList(List* macros) {
      RegisterMacroInfo and Expand macro will check for errors of macro definition and calls and
      errors will be saved to the errors list.
      Assumes that provided arguments are correct and does not check them. */
-void Preprocess(char* sourceFileName, DArrayInt* SourceLineReference, List* errors) {
+void Preprocess(char* sourceFileName, Errors* errors) {
     List* macros; /* List of all found macros. */
     FILE* source; /* Source file handler. */
     FILE* target; /* Expanded file handler. */
@@ -515,7 +513,9 @@ void Preprocess(char* sourceFileName, DArrayInt* SourceLineReference, List* erro
     /* Opening files. */
     fullNameLen = StringLen(sourceFileName) + 3;
     fullFname = (char*)malloc(sizeof(char)*(fullNameLen+1));
-    if (fullFname == NULL) { perror("Failed to allocate memory.\n"); exit(1); }
+    if (fullFname == NULL) { 
+        perror("Failed to allocate memory.\n"); 
+        exit(1); }
     /* Source file. */
     AppendExtension(sourceFileName, "as", fullFname, fullNameLen);
     source = fopen(fullFname, "r"); /* Opening source file for reading. */
@@ -523,7 +523,10 @@ void Preprocess(char* sourceFileName, DArrayInt* SourceLineReference, List* erro
     AppendExtension(sourceFileName, "am", fullFname, fullNameLen);
     target = fopen(fullFname, "w"); /* Opening target file for writing*/
     /* Check. */
-    if (source == NULL || target == NULL) { perror("Failed to open file.\n"); exit(2); }
+    if (source == NULL || target == NULL) { 
+        perror("Failed to open file.\n"); 
+        exit(2); 
+    }
 
     /* Reading source file line by line. */
     while (fgets(line, MAX_STATEMENT_LEN+2, source) != NULL) {
@@ -553,7 +556,7 @@ void Preprocess(char* sourceFileName, DArrayInt* SourceLineReference, List* erro
         /* Checking if line is a macro call. */
         if (IsLineMacroCall(line, macros)) {
             /* Expanding macro. */
-            ExpandMacro(&source, &target, ftell(source), SourceLineReference, line, line_num, macros, errors);
+            ExpandMacro(&source, &target, ftell(source), line, line_num, macros, errors);
             continue; /* Not copying this line*/
         }
 
@@ -561,7 +564,7 @@ void Preprocess(char* sourceFileName, DArrayInt* SourceLineReference, List* erro
            and not a macro call we copy it as it is. */
         fputs(line, target);
         /* Saving reference to source file number. */
-        DArrayIntAdd(SourceLineReference, line_num);
+        AddLineReference(errors, line_num);
 
     } /* File reading cycle end */
 

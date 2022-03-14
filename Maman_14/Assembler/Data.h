@@ -19,24 +19,6 @@ typedef struct List {
     int count;
 } List;
 
-/* Dynamic array of integer type.
-   Size of this array can be expanded by calling 
-   a function. Size is expanded in steps.
-   Steps are defined when creaing this structure.
-   Elements can be added one after another with 
-   a function. In this case array is expanded automatically.
-   When user creates this array he should decide if he will
-   add elements directly to ->data field and use function to expand
-   capacity, or use function to add elements one after another in
-   which case array will be expanded automatically.
-    */
-typedef struct DArrayInt {
-   int* data;  /* Array holding data. */
-   int size; /* Size of data array. */
-   int step; /* Expansion step in cells. */
-   int count; /* Number of added elements. */
-} DArrayInt;
-
 /* Creates new linked list.
    Returns:
     Empty linked list.
@@ -51,30 +33,57 @@ List* CreateList();
  */
 void ListAdd(List* list, void* data);
 
+/* Frees memory occupied by list and its data.
+   Frees every data field, every node and list 
+   itself.*/
+void FreeListAndData(List* list);
+
+
+/* Dynamic array of integer type.
+   Size of this array can be expanded by calling 
+   a function. Size is expanded in steps.
+   Steps are defined when creaing this structure.
+   Elements can be added one after another with 
+   a function. In this case array is expanded automatically.
+   When user creates this array he should decide if he will
+   add elements directly to ->data field and use function to expand
+   capacity, or use function to add elements one after another in
+   which case array will be expanded automatically.
+    */
+typedef struct DynArr {
+   int* data;  /* Array holding data. */
+   int size; /* Size of data array. */
+   int step; /* Expansion step in cells. */
+   int count; /* Number of added elements. */
+} DynArr;
+
 /* Creates dynamic array of integer type.
    Arguments:
     step    -- Expansion step in cells.
    Returns:
-    New dynamic array of size */
-DArrayInt* CreateDArrayInt(int step);
+    New dynamic array of size equal step. */
+DynArr* CreateDynArr(int step);
 
 /* Expands dynamic integer array by one step.
    Arguments:
-    dArray  -- Dynamic array for expansion. */
-void ExpandDArrayInt(DArrayInt* dArray);
+    arr  -- Dynamic array for expansion. */
+void ExpandDynArr(DynArr* arr);
 
 /* Writes data to dynamic array at position ->count
    and increases this counter.
    Arguments:
-    dArray  -- Dynamic array.
+    arr     -- Dynamic array.
     data    -- New data element. */
-void DArrayIntAdd(DArrayInt* dArray, int data);
+void AddDynArr(DynArr* arr, int data);
 
 /* Frees memory allocated for dynamic array.
    Removes data and structure.
    Arguments:
-    dArray  -- Dynamic array to free. */
-void DArrayIntFree(DArrayInt* dArray);
+    arr  -- Dynamic array to free. */
+void FreeDynArr(DynArr* arr);
+
+
+
 
 /* Type of dynamic array for storing
    binary representation of the code or data
@@ -138,4 +147,5 @@ void FreeBinary(BinarySegment* bin);
    Returns:
     Next address (bin->base + bin->counter). */
 int NextSegmentAddress(BinarySegment* bin);
+
 #endif

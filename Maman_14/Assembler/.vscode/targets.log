@@ -1,35 +1,20 @@
 make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # GNU Make 4.2.1
- 
 # Built for x86_64-pc-linux-gnu
- 
 # Copyright (C) 1988-2016 Free Software Foundation, Inc.
- 
 # License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
- 
 # This is free software: you are free to change and redistribute it.
- 
 # There is NO WARRANTY, to the extent permitted by law.
- 
 
- 
-# Make data base, printed on Sun Mar 13 00:40:32 2022
- 
+# Make data base, printed on Mon Mar 14 11:08:16 2022
 
 # Variables
- 
 
- 
 # automatic
- 
 <D = $(patsubst %/,%,$(dir $<))
- 
 # automatic
- 
 ?F = $(notdir $?)
- 
 # environment
- 
 DESKTOP_SESSION = cinnamon
 # default
 .SHELLFLAGS := -c
@@ -94,7 +79,7 @@ PATH = /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/
 # environment
 GPG_AGENT_INFO = /run/user/1000/gnupg/S.gpg-agent:0:1
 # environment
-SESSION_MANAGER = local/deer-mint:@/tmp/.ICE-unix/1083,unix/deer-mint:/tmp/.ICE-unix/1083
+SESSION_MANAGER = local/deer-mint:@/tmp/.ICE-unix/1099,unix/deer-mint:/tmp/.ICE-unix/1099
 # environment
 XDG_RUNTIME_DIR = /run/user/1000
 # environment
@@ -112,7 +97,7 @@ XDG_SESSION_DESKTOP = cinnamon
 # environment
 SSH_AUTH_SOCK = /run/user/1000/keyring/ssh
 # environment
-GIO_LAUNCHED_DESKTOP_FILE_PID = 1630
+GIO_LAUNCHED_DESKTOP_FILE_PID = 2951
 # automatic
 %F = $(notdir $%)
 # environment
@@ -128,7 +113,7 @@ QT_QPA_PLATFORMTHEME = qt5ct
 # environment
 XDG_SEAT = seat0
 # environment
-SSH_AGENT_PID = 1152
+SSH_AGENT_PID = 1168
 # environment
 ORIGINAL_XDG_CURRENT_DESKTOP = X-Cinnamon
 # environment
@@ -164,7 +149,7 @@ SHLVL = 0
 # makefile (from 'Makefile', line 2)
 CC = gcc
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-b05e52e9-91bb-4926-992a-f399653ade0b.sock
+VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-acd5f1c7-9130-4721-9fdc-3bc269532c07.sock
 # environment
 XDG_SESSION_ID = c2
 # environment
@@ -230,7 +215,7 @@ GJS_DEBUG_OUTPUT = stderr
 # environment
 LANG = C
 # environment
-VSCODE_PID = 1630
+VSCODE_PID = 2951
 # variable set hash-table stats:
 # Load=103/1024=10%, Rehash=0, Collisions=8/133=6%
 
@@ -240,9 +225,9 @@ VSCODE_PID = 1630
 
 # Directories
 
-# . (device 2053, inode 6030413): 21 files, no impossibilities.
+# . (device 2053, inode 6030413): 23 files, no impossibilities.
 
-# 21 files, no impossibilities in 1 directories.
+# 23 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -293,6 +278,7 @@ Makefile:
 #  File has been updated.
 #  Successfully updated.
 
+ 
 file:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
@@ -323,7 +309,6 @@ compile:
 # automatic
 # ? := 
 # variable set hash-table stats:
- 
 # Load=8/32=25%, Rehash=0, Collisions=1/13=8%
 #  recipe to execute (from 'Makefile', line 40):
 	$(CC) Definitions.h Data.c MyString.c Parsing.c Errors.c Preprocessor.c Binary.c assembler.c $(CFLAGS) -o ./bin/assembler
@@ -356,12 +341,12 @@ err:
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 33 / storage = 287 B / avg = 8 B
-# current buf: size = 8162 B / used = 287 B / count = 33 / avg = 8 B
+# strcache buffers: 1 (0) / strings = 35 / storage = 321 B / avg = 9 B
+# current buf: size = 8162 B / used = 321 B / count = 35 / avg = 9 B
 
-# strcache performance: lookups = 48 / hit rate = 31%
+# strcache performance: lookups = 50 / hit rate = 30%
 # hash-table stats:
-# Load=33/8192=0%, Rehash=0, Collisions=1/48=2%
-# Finished Make data base on Sun Mar 13 00:40:32 2022
+# Load=35/8192=0%, Rehash=0, Collisions=1/50=2%
+# Finished Make data base on Mon Mar 14 11:08:16 2022
 
  

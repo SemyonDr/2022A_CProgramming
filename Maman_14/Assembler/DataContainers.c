@@ -1,5 +1,20 @@
 #include "DataContainers.h"
 
+/* Frees memory occupied by instruction structure. 
+   Removes argument structures if they are present
+   and instruction itself.*/
+void FreeIns(Ins* ins) {
+   if (ins != NULL) {
+      /* Removing argument structures. */
+      if (ins->source != NULL)
+         free(ins->source);
+      if (ins->dest != NULL)
+         free(ins->dest);
+      /* Removing instruction structure. */
+      free(ins);
+   }
+}
+
 /* Tells if binary value describing addressing modes
    in instruction info has specific mode.
    Arguments:

@@ -72,7 +72,7 @@ int IsLineMacroCall(char* line, List* macros);
    Returns:
     Macro name string, null-terminated.
     NULL if no name is found, or it is illegal. */
-char* GetMacroName(char* line, int defLineNum, List* errors);
+char* GetMacroName(char* line, int defLineNum, Errors* errors);
 
 /* Gets macro info from source file.
    Arguments:
@@ -84,7 +84,7 @@ char* GetMacroName(char* line, int defLineNum, List* errors);
    Returns:
     Directly returns new MacroInfo structure. NULL will be returned if errors encountered.
     Writes number of lines in macro body to num_lines pointer even if getting info failed. */
-MacroInfo* GetMacroInfo(FILE** source, int* num_lines, char* defLine, int defLineNum, List* errors);
+MacroInfo* GetMacroInfo(FILE** source, int* num_lines, char* defLine, int defLineNum, Errors* errors);
 
 /* Registers macro definition in list of macros.
    Will set source file position to the first character
@@ -98,7 +98,7 @@ MacroInfo* GetMacroInfo(FILE** source, int* num_lines, char* defLine, int defLin
     errors      -- Errors list.
    Returns:
     Number of line in source file after macro closing tag.*/
-int RegisterMacroInfo(FILE** source, List* macros, char* defLine, int defLineNum, List* errors);
+int RegisterMacroInfo(FILE** source, List* macros, char* defLine, int defLineNum, Errors* errors);
 
 /* Expands macro by name defined in callLine.
    Copies macro body lines from source file to
@@ -107,12 +107,11 @@ int RegisterMacroInfo(FILE** source, List* macros, char* defLine, int defLineNum
     source      -- Pointer to source file hanler.
     target      -- Pointer to target (expanded) file handler.
     srcPos      -- Current position in source file (position after macro call line)
-    slRef       -- Source line reference array.
     callLine    -- Line of macro call (first word is a macro name)
     callLineNum -- Number of a call line in source file.
     macros      -- List of registered macros.
     errors      -- List of errors. */
-void ExpandMacro(FILE** source, FILE** target, long srcPos, DArrayInt* slRef, char* callLine, int callLineNum, List* macros, List* errors);
+void ExpandMacro(FILE** source, FILE** target, long srcPos, char* callLine, int callLineNum, List* macros, List* errors);
 
 /* Frees memory occupied by macros list.
    Removes macro info objects, 
@@ -129,6 +128,6 @@ void FreeMacrosList(List* macros);
     errors              -- List of errors.
    Returns:
     Source line reference. */
-void Preprocess(char* sourceFileName, DArrayInt* SourceLineReference, List* errors);
+void Preprocess(char* sourceFileName, Errors* errors);
 
 #endif

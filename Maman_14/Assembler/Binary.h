@@ -13,10 +13,15 @@ typedef struct ParsedCode {
     List* instructions;     /* List of parsed instructions in order. */
     List* data;             /* List of parsed data lines in order. */
     List* symbols;          /* Symbols table. */
+    BinarySegment* code;
+    BinarySegment* data;
+
 } ParsedCode;
 
 char* GetInsNameByCode(int insCode);
 
 Ins* ParseInstructionLine(char* line, List* errors, DArrayInt* slr, int lineNum);
+
+
 
 #endif

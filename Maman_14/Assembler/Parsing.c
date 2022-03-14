@@ -358,9 +358,10 @@ char* GetNextArg(char* line, int* pos) {
     return arg;
 }
 
-/* Gets arguments from given line. Advances 
-   line position to line termination character.
+/* Gets arguments from given line as strings.
+   Advances line position to line termination character.
    Checks for comma errors.
+   Allocates argument strings on heap.
    Arguments:
     line    -- Instruction line
     pos     -- Position in line after instruction or directive name.
@@ -368,8 +369,8 @@ char* GetNextArg(char* line, int* pos) {
     lineNum -- Number of given line in expanded source code.
     slr     -- Source line reference.
    Returns:
-    List of stings of arguments.  */
-List* GetArgs(char* line, int* pos, List* errors, int lineNum, DArrayInt* slr) {
+    List of stings of arguments. Empty list will be returned if no arguments.*/
+List* GetRawArgs(char* line, int* pos, Errors* errors) {
     List* args; /* List for holding arguments. */
     char* arg; /* Variable for storing an argument. */
     int num_commas; /* Variable for storing number of commas. */
@@ -383,7 +384,7 @@ List* GetArgs(char* line, int* pos, List* errors, int lineNum, DArrayInt* slr) {
     /* Checking if illegal commas were present. */
     if (num_commas>0)
         /* Adding error and continuing. */
-        AddError(errors, slr->data[lineNum], ErrCmm_Before, line);
+        AddError(errors, ErrCmm_Before, line, NULL);
 
     /* Getting arguments in a loop.*/
     while ((arg = GetNextArg(line, pos)) != NULL) {
@@ -395,13 +396,13 @@ List* GetArgs(char* line, int* pos, List* errors, int lineNum, DArrayInt* slr) {
         /* If arguments wasn't last in line. */
         if (line[*pos] != '\0') {
             if (num_commas > 1) 
-                AddError(errors, slr->data[lineNum], ErrCmm_Multiple, line);
+                AddError(errors, ErrCmm_Multiple, line, NULL);
             if (num_commas == 0)
-                AddError(errors, slr->data[lineNum], ErrCmm_Missing, line);
+                AddError(errors, ErrCmm_Missing, line, NULL);
         } /* If argument was the last one. */
         else {
             if (num_commas != 0)
-                AddError(errors, slr->data[lineNum], ErrCmm_After, line);
+                AddError(errors, ErrCmm_After, line, NULL);
         }
     }
 
@@ -633,3 +634,86 @@ InsArg* ParseInsArg(char* arg, List* errors, int lineNum, DArrayInt* slr) {
     return ParseLabelArgument(arg, parg, errors, lineNum, slr);
 }
 
+char* GetSymbolDirectiveArgument(char* line, int* pos, char arg[MAX_LABEL_LEN+1], int lineNum, List* errors, DArrayInt* slr) {
+    int i = 0; /* Iterator. */
+    char word[MAX_STATEMENT_LEN+2]; /* Buffer wor storing word from line. */
+    char* res;  /* Result of getting the word. */
+
+    /* Getting argument word. */
+    res = GetNextWord(line, pos, word, MAX_STATEMENT_LEN+1, NULL);
+
+    /* Checking if word is present. */
+    if (res == NULL) {
+        AddError(errors, slr->data[lineNum], ErrDir_NoArgument, line);
+        return NULL;
+    }
+
+    /* Checking if word not exeeds MAX_LABEL_LEN. */
+    if (StringLen(word) > 31) {
+        AddError(errors, slr->data[lineNum], ErrArg_LongSymbol, line);
+        return NULL;
+    }
+
+    /* Checking if word is AZ09 and starts with a letter. */
+    if (!IsAz09(word) || IsDigit(word[0])) {
+        AddError(errors, slr->data[lineNum], ErrArg_InvalidLabel, line);
+        return NULL;
+    }
+
+    /* Copying the word to output buffer. */
+    while (word[i] != '\0') {
+        arg[i] = word[i];
+        i++;
+    }
+    arg[i] = '\0'; /* Adding termination sign */
+
+    /* Checking for extra text after argument. */
+    res = GetNextWord(line, pos, word, MAX_STATEMENT_LEN+1, NULL);
+    if (res != NULL) {
+        /* Argument will be returned, but error will be saved. */
+        AddError(errors, slr->data[lineNum], ErrDit_Extra, line);
+    }
+
+    return arg;   
+}
+
+/* Parses list of .data directive numeric arguments given as strings.
+   Returns dynamic array containing integer value.
+   Arguments:
+    line    -- Line with .data directive.
+    rawArgs -- Arguments as strings.
+    errors  -- Errors list.
+   Returns:
+    Dynamic array containing integer values of corresponding arguments.
+    NULL if parsing failed. */
+DynArr* ParseDataArgs(char* line, List* rawArgs, List* errors) {
+    DynArr* pargs; /* Array of parsed arguments values. */
+    ListNode* cur; /* List iterator. */
+
+    /* Creating result array. */
+    pargs = CreateDArrayInt(8);
+
+    /* If no arguments in the list. */
+    if (rawArgs->count == 0) {
+        AddError(errors, ErrDir_NoArgument, line, NULL);
+        FreeDynArr(pargs);
+        return NULL;
+    }
+
+    /* Parsing arguments in a loop. */
+    cur = rawArgs->head; /* Initializing iterator. */
+    while (cur != NULL) {
+        /* Checking if raw argument is a number and parsing it. */
+        if (IsNumber(cur->data))
+            AddDynArr(pargs, ParseNumber(cur->data));
+        else {
+            /* Invalid argument encountered. */
+            AddError(errors, ErrDt_DtInvalidArg, line, cur->data);
+            FreeDynArr(pargs);
+            return NULL;
+        }
+        cur = cur->next; /* Advancing iterator. */
+    }
+
+    return pargs;
+}

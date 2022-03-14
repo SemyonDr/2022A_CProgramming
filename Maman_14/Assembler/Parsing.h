@@ -102,9 +102,10 @@ int IsReservedWord(char* s);
     If label isn't found function will return NULL. */
 char* TryGetLabel(char* line, int* pos, char* label, int maxLen);
 
-/* Gets arguments from given line. Advances 
-   line position to line termination character.
+/* Gets arguments from given line as strings.
+   Advances line position to line termination character.
    Checks for comma errors.
+   Allocates argument strings on heap.
    Arguments:
     line    -- Instruction line
     pos     -- Position in line after instruction or directive name.
@@ -112,8 +113,8 @@ char* TryGetLabel(char* line, int* pos, char* label, int maxLen);
     lineNum -- Number of given line in expanded source code.
     slr     -- Source line reference.
    Returns:
-    List of stings of arguments.  */
-List* GetArgs(char* line, int* pos, List* errors, int lineNum, DArrayInt* slr);
+    List of stings of arguments. Empty list will be returned if no arguments.*/
+List* GetRawArgs(char* line, int* pos, Errors* errors);
 
 /* Parses instruction argument.
 NULL if failed! */
@@ -121,4 +122,16 @@ InsArg* ParseInsArg(char* arg, List* errors, int lineNum, DArrayInt* slr);
 
 int ParseNumber(char* s);
 
+char* GetSymbolDirectiveArgument(char* line, int* pos, char arg[MAX_LABEL_LEN+1], int lineNum, List* errors, DArrayInt* slr);
+
+/* Parses list of .data directive numeric arguments given as strings.
+   Returns dynamic array containing integer value.
+   Arguments:
+    line    -- Line with .data directive.
+    rawArgs -- Arguments as strings.
+    errors  -- Errors list.
+   Returns:
+    Dynamic array containing integer values of corresponding arguments.
+    NULL if parsing failed. */
+DynArr* ParseDataArgs(char* line, List* rawArgs, List* errors);
 #endif
