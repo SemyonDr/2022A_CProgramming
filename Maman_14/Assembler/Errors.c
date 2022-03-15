@@ -195,7 +195,10 @@ void PrintError(Error* er) {
         break;
 
     case ErrStm_NotRecognized:
-        printf("Unknown command.");
+        if (er->info[0] != '\0')
+            printf("Unknown command \"%s\".", er->info);
+        else
+            printf("Unknown command.");
         break;
 
     case ErrCmm_Before:

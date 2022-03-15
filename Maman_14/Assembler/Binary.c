@@ -1,7 +1,5 @@
 #include "Binary.h"
 
-
-
 /* Parses instruction line and produces Ins structure allocated on heap.
    Structure contains istruction code and structures that describe arguments.
    Catches parsing and arguments errors.
@@ -11,11 +9,9 @@
     line    -- Instruction line from source code.
     pos     -- Position in line after label and before instruction name.
     errors  -- Errors list.
-    slr     -- Source line reference.
-    lineNum -- Number of line in expanded source file.
    Returns:
     Pointer to allocated instruction structure. NULL if parsing failed. */
-Ins* ParseInstructionLine(char* line, int* pos, List* errors, DArrayInt* slr, int lineNum) {
+Ins* ParseInstructionLine(char* line, int* pos, Errors* errors) {
     char word[MAX_STATEMENT_LEN+2]; /* Buffer for holding word from line. */
     char* res;  /* Result of getting the word. */
     Ins* ins;   /* Parsed instruction structure. */
@@ -36,7 +32,7 @@ Ins* ParseInstructionLine(char* line, int* pos, List* errors, DArrayInt* slr, in
     res = GetNextWord(line, &pos, word, MAX_STATEMENT_LEN+1, ",");
     /* Checking if line is not empty. */
     if (res == NULL) {
-        AddError(errors, slr->data[lineNum], ErrStm_Empty, line);
+        AddError(errors, ErrStm_Empty, line, NULL);
         return NULL;
     }
 
@@ -54,7 +50,7 @@ Ins* ParseInstructionLine(char* line, int* pos, List* errors, DArrayInt* slr, in
     ins->ins = GetInstructionType(word);
     /* If instruction is not recognized. */
     if (ins->ins == -1) {
-        AddError(errors, slr->data[lineNum], ErrStm_NotRecognized, line);
+        AddError(errors, ErrStm_NotRecognized, line, word);
         FreeIns(ins);
         return NULL;
     }
@@ -65,7 +61,7 @@ Ins* ParseInstructionLine(char* line, int* pos, List* errors, DArrayInt* slr, in
     }/* DEBUG PRINT ****************************************************** */
 
     /* Getting instruction arguments as strings. */
-    rawArgs = GetRawArgs(line, &pos, errors, lineNum, slr);
+    rawArgs = GetRawArgs(line, &pos, errors);
 
     {/* DEBUG PRINT ****************************************************** */
         int i = 1;
@@ -102,7 +98,7 @@ Ins* ParseInstructionLine(char* line, int* pos, List* errors, DArrayInt* slr, in
     /* Checking number of arguments that were extracted from the line. */
     /* Missing arguments. */
     if (rawArgs->count < num_args) {
-        AddError(errors, slr->data[lineNum], ErrIns_MissingArg, line);
+        AddError(errors, ErrIns_MissingArg, line, NULL);
         free(ins); /* Freeing instruction structure. */
         FreeListAndData(rawArgs); /* Freeing arguments list. */
         return NULL;
@@ -112,13 +108,13 @@ Ins* ParseInstructionLine(char* line, int* pos, List* errors, DArrayInt* slr, in
     if (rawArgs->count > num_args) 
         /* Too many arguments. Appropriate number of arguments will
            be parsed, but error will be saved. */
-        AddError(errors, slr->data[lineNum], ErrIns_ExtraArg, line);
+        AddError(errors, ErrIns_ExtraArg, line, NULL);
 
     /* If instruction has 2 arguments: */
     if (num_args == 2) {
         /* Parsing arguments. */
-        ins->source = ParseInsArg(rawArgs->head->data, errors, lineNum, slr);
-        ins->dest = ParseInsArg(rawArgs->head->next->data, errors, lineNum, slr);
+        ins->source = ParseInsArg(rawArgs->head->data, errors);
+        ins->dest = ParseInsArg(rawArgs->head->next->data, errors);
         /* Freeing raw arguments list. */
         FreeListAndData(rawArgs);
         /* If parsing arguments failed. */
@@ -128,12 +124,12 @@ Ins* ParseInstructionLine(char* line, int* pos, List* errors, DArrayInt* slr, in
         }
         /* Checking if entered modes are available for instuction arguments. */
         if (!HasMode(insinfo.amodes_source, ins->source->amode)) {
-            AddError(errors, slr->data[lineNum], ErrIns_InvalidSrcAmode, line);
+            AddError(errors, ErrIns_InvalidSrcAmode, line, NULL);
             FreeIns(ins);
             return NULL;
         }
         if (!HasMode(insinfo.amodes_dest, ins->dest->amode)) {
-            AddError(errors, slr->data[lineNum], ErrIns_InvalidDestAmode, line);
+            AddError(errors, ErrIns_InvalidDestAmode, line, NULL);
             FreeIns(ins);
             return NULL;
         }
@@ -142,7 +138,7 @@ Ins* ParseInstructionLine(char* line, int* pos, List* errors, DArrayInt* slr, in
     /* If instruction has 1 argument it is always a destination argument. */
     if (num_args == 1) {
         /* Parsing arguments. */
-        ins->dest = ParseInsArg(rawArgs->head->data, errors, lineNum, slr);
+        ins->dest = ParseInsArg(rawArgs->head->data, errors);
         FreeListAndData(rawArgs); /* Freeing string arguments. */
         /* If parsing arguments failed. */
         if (ins->dest == NULL) {
@@ -151,7 +147,7 @@ Ins* ParseInstructionLine(char* line, int* pos, List* errors, DArrayInt* slr, in
         }
         /* Checking if entered modes are available for destination argument. */
         if (!HasMode(insinfo.amodes_dest, ins->dest->amode)) {
-            AddError(errors, slr->data[lineNum], ErrIns_InvalidDestAmode, line);
+            AddError(errors, ErrIns_InvalidDestAmode, line, NULL);
             FreeIns(ins);
             return NULL;
         }
@@ -196,96 +192,6 @@ int GetDirectiveType(char* line, int* pos) {
     return -1;
 }
 
-void AddSymbol(List* symbols, Symbol* new_smb, int lineNum, List* errors, DArrayInt* slr) {
-    ListNode* cur = symbols->head; /* List iterator. */
-
-    /* Searching if symbol already in the table. */
-    while (cur != NULL) {
-        /* Taking current iteration symbol from table. */
-        Symbol* cur_smb = cur->data; 
-        /* If symbol with the same name found */
-        if (CompareStrings(cur_smb->name, new_smb->name)) {
-            /* If symbol has attribute .extern */
-            if (IsExtern(cur_smb)) {
-                /* Cannot be re-defined as entry. */
-                if (IsEntry(new_smb)) {
-                    AddError(errors, slr->data[lineNum], ErrSmb_EntryExtern, new_smb->name);
-                    return;
-                }
-                /* Cannot be re-defined as code, or data, or another extern (which will be completely identical definition)*/
-                AddError(errors, slr->data[lineNum], ErrSmb_NameIdentical, new_smb->name);
-                return;
-            }
-            /* If existing symbol has attributes code or data
-               new symbol can only has attribute .entry, in every other context it will re-definition. */
-            if ((IsCode(cur_smb) || IsData(cur_smb)) && !IsEntry(new_smb)) {
-                AddError(errors, slr->data[lineNum], ErrSmb_NameIdentical, new_smb->name);
-                return;
-            }
-            /* If existing symbol has attribute .entry */
-            if (IsEntry(cur_smb)) {
-                /* New symbol can't be. extern. */
-                if (IsExtern(new_smb)) {
-                    AddError(errors, slr->data[lineNum], ErrSmb_EntryExtern, new_smb->name);
-                    return;
-                }
-                /* New symbol can't be also .entry (identical definition). */
-                if (IsEntry(new_smb)) {
-                    AddError(errors, slr->data[lineNum], ErrSmb_NameIdentical, new_smb->name);
-                    return;
-                }
-                /* If .entry was in table and new symbol is code or data its address should overwrite .entry address. */
-                cur_smb->adress = new_smb->adress;
-            }
-            /* In any other case (combinations code||data+entry, or entry+code||data) adding 
-               new attribute to existing symbol and deallocating new symbol as it is already in table. */ 
-            /* Adding attribute using binary OR operation. Example: if existing attribute is 1000 and new is 0001 result is 1001. */
-            cur_smb->attributes = cur_smb->attributes | new_smb->attributes; 
-            
-            free(new_smb);
-            return;
-        }
-        /* Advancing iterator. */
-        cur = cur->next;
-    }
-
-    /* If symbol does not exist in table yet adding it. */
-    ListAdd(symbols, new_smb);
-}
-
-/* Allocates new symbol structure.
-   Makes new copy of label string, only MAX_LABEL_LEN first characters will be copied.
-   Arguments:
-    label       -- Label name string.
-    address     -- Address of instruction where symbol declared.
-    attribute   -- Attribute of the symbol in declaration line according to SymbolAttributesEnum.
-   Returns:
-    New Symbol structure. */ 
-Symbol* CreateSymbol(char* label, int address, int attribute) {
-    int pos = 0; /* Label string iterator. */
-    int one = 1; /* Binary number one.*/
-    /* Allocating structure. */
-    Symbol* smb = (Symbol*)malloc(sizeof(Symbol));
-    if (smb == NULL) {
-        perror("Failed to allocate memory.");
-        exit(1);
-    }
-    /* Setting attribute with binary shift. */
-    smb->attributes = one << attribute; 
-
-    /* Copying label name. */
-    while (label[pos] != '\0' && pos<32) {
-        (smb->name)[pos] = label[pos];
-        pos++;
-    }
-    /* Adding termination character. */
-    (smb->name)[pos] = '\0';
-
-    /* Setting address. */
-    smb->adress = address;
-
-    return smb;
-}
 
 /* Writes .data line arguments to data binary segment.
    Arguments:
@@ -440,7 +346,7 @@ void InstructionToBinary(Ins* ins, BinarySegment* code) {
 }
 
 /*  */
-Symbol* StatementToBinary(char* line, List* unresolved, BinarySegment* code, BinarySegment* data, Errors* errors) {
+Symbol* ProcessStatement(char* line, List* unresolved, BinarySegment* code, BinarySegment* data, Errors* errors) {
     int pos = 0; /* Position in line. */
     char label[MAX_STATEMENT_LEN+2];  /* Buffer for holding label. */
     int lptr; /* Variable for holding result of getting the label.*/

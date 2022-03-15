@@ -701,6 +701,16 @@ InsArg* ParseInsArg(char* arg, Errors* errors) {
     return ParseLabelArgument(arg, parg, errors);
 }
 
+/* Gets argument (label) of .extern or .entry directives.
+   Writes argument to provided buffer.
+   Arguments:
+    line    -- Statement line.
+    pos     -- Position in line after directive name.
+    arg     -- Buffer for writing argument.
+    errors  -- Errors list.
+   Returns:
+    Writes argument to provided buffer.
+    Directly returns pointer to that buffer, or NULL if getting argument failed. */
 char* GetSymbolDirectiveArgument(char* line, int* pos, char arg[MAX_LABEL_LEN+1], Errors* errors) {
     int i = 0; /* Iterator. */
     char word[MAX_STATEMENT_LEN+2]; /* Buffer wor storing word from line. */

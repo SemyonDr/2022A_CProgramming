@@ -72,3 +72,96 @@ int IsExtern(Symbol* smb) {
 int IsEntry(Symbol* smb) {
    return smb->attributes & 1;
 }
+
+/* Allocates new symbol structure.
+   Makes new copy of label string, only MAX_LABEL_LEN first characters will be copied.
+   Arguments:
+    label       -- Label name string.
+    address     -- Address of instruction where symbol declared.
+    attribute   -- Attribute of the symbol in declaration line according to SymbolAttributesEnum.
+   Returns:
+    New Symbol structure. */ 
+Symbol* CreateSymbol(char* label, int address, int attribute) {
+    int pos = 0; /* Label string iterator. */
+    int one = 1; /* Binary number one.*/
+    /* Allocating structure. */
+    Symbol* smb = (Symbol*)malloc(sizeof(Symbol));
+    if (smb == NULL) {
+        perror("Failed to allocate memory.");
+        exit(1);
+    }
+    /* Setting attribute with binary shift. */
+    smb->attributes = one << attribute; 
+
+    /* Copying label name. */
+    while (label[pos] != '\0' && pos<32) {
+        (smb->name)[pos] = label[pos];
+        pos++;
+    }
+    /* Adding termination character. */
+    (smb->name)[pos] = '\0';
+
+    /* Setting address. */
+    smb->adress = address;
+
+    return smb;
+}
+
+
+/* Add symbol to symbols table. */
+void AddSymbol(List* symbols, Symbol* new_smb, Errors* errors) {
+    ListNode* cur = symbols->head; /* List iterator. */
+
+    /* Searching if symbol already in the table. */
+    while (cur != NULL) {
+        /* Taking current iteration symbol from table. */
+        Symbol* cur_smb = (Symbol*)(cur->data); 
+        /* If symbol with the same name found */
+        if (CompareStrings(cur_smb->name, new_smb->name)) {
+            /* If symbol has attribute .extern */
+            if (IsExtern(cur_smb)) {
+                /* Cannot be re-defined as entry. */
+                if (IsEntry(new_smb)) {
+                    AddError(errors, ErrSmb_EntryExtern, new_smb->name, NULL);
+                    return;
+                }
+                /* Cannot be re-defined as code, or data, or another extern (which will be completely identical definition)*/
+                AddError(errors, ErrSmb_NameIdentical, new_smb->name, NULL);
+                return;
+            }
+            /* If existing symbol has attributes code or data
+               new symbol can only has attribute .entry, in every other context it will re-definition. */
+            if ((IsCode(cur_smb) || IsData(cur_smb)) && !IsEntry(new_smb)) {
+                AddError(errors, ErrSmb_NameIdentical, new_smb->name, NULL);
+                return;
+            }
+            /* If existing symbol has attribute .entry */
+            if (IsEntry(cur_smb)) {
+                /* New symbol can't be. extern. */
+                if (IsExtern(new_smb)) {
+                    AddError(errors, ErrSmb_EntryExtern, new_smb->name, NULL);
+                    return;
+                }
+                /* New symbol can't be also .entry (identical definition). */
+                if (IsEntry(new_smb)) {
+                    AddError(errors, ErrSmb_NameIdentical, new_smb->name, NULL);
+                    return;
+                }
+                /* If .entry was in table and new symbol is code or data its address should overwrite .entry address. */
+                cur_smb->adress = new_smb->adress;
+            }
+            /* In any other case (combinations code||data+entry, or entry+code||data) adding 
+               new attribute to existing symbol and deallocating new symbol as it is already in table. */ 
+            /* Adding attribute using binary OR operation. Example: if existing attribute is 1000 and new is 0001 result is 1001. */
+            cur_smb->attributes = cur_smb->attributes | new_smb->attributes; 
+            
+            free(new_smb);
+            return;
+        }
+        /* Advancing iterator. */
+        cur = cur->next;
+    }
+
+    /* If symbol does not exist in table yet adding it. */
+    ListAdd(symbols, new_smb);
+}

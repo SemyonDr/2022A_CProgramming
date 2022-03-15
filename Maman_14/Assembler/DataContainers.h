@@ -2,6 +2,10 @@
     #define DATACONTAINERS_H
 
 #include <stdlib.h>
+#include <stdio.h>
+#include "MyString.h"
+#include "Data.h"
+#include "Errors.h"
 
 /* Structure that describes info about macro.*/
 typedef struct MacroInfo {
@@ -34,14 +38,12 @@ typedef struct Ins {
    and instruction itself.*/
 void FreeIns(Ins* ins);
 
-
 /* Structure that represents element of symbols table. */
 typedef struct Symbol {
    char name[32];    /* Symbol label. */
    int adress;       /* Address represented by label (decimal) */
    int attributes;   /* [8]code-[4]data-[2]extern-[1]entry*/
 } Symbol;
-
 
 /* Structure for holding pair of label and pointer
    to instuction argument where label is mentioned in code. 
@@ -105,5 +107,18 @@ int IsExtern(Symbol* smb);
     0 -- attribute is set.
     1 -- Attribute not set. */
 int IsEntry(Symbol* smb);
+
+/* Allocates new symbol structure.
+   Makes new copy of label string, only MAX_LABEL_LEN first characters will be copied.
+   Arguments:
+    label       -- Label name string.
+    address     -- Address of instruction where symbol declared.
+    attribute   -- Attribute of the symbol in declaration line according to SymbolAttributesEnum.
+   Returns:
+    New Symbol structure. */ 
+Symbol* CreateSymbol(char* label, int address, int attribute);
+
+/* Add symbol to symbols table. */
+void AddSymbol(List* symbols, Symbol* new_smb, Errors* errors);
 
 #endif

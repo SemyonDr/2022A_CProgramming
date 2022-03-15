@@ -181,8 +181,17 @@ InsArg* ParseLabelArgument(char* arg, InsArg* parg, Errors* errors);
    NULL if failed. */
 InsArg* ParseInsArg(char* arg, Errors* errors);
 
-
-char* GetSymbolDirectiveArgument(char* line, int* pos, char arg[MAX_LABEL_LEN+1], int lineNum, List* errors, DArrayInt* slr);
+/* Gets argument (label) of .extern or .entry directives.
+   Writes argument to provided buffer.
+   Arguments:
+    line    -- Statement line.
+    pos     -- Position in line after directive name.
+    arg     -- Buffer for writing argument.
+    errors  -- Errors list.
+   Returns:
+    Writes argument to provided buffer.
+    Directly returns pointer to that buffer, or NULL if getting argument failed. */
+char* GetSymbolDirectiveArgument(char* line, int* pos, char arg[MAX_LABEL_LEN+1], Errors* errors);
 
 /* Parses list of .data directive numeric arguments given as strings.
    Returns dynamic array containing integer value.
