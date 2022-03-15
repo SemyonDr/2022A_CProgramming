@@ -577,3 +577,5 @@ void Preprocess(char* sourceFileName, Errors* errors) {
 
     printf("DEBUG: Preprocess finished.\n");
 }
+
+/* Test */
