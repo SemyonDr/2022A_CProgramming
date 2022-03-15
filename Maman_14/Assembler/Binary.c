@@ -1,216 +1,5 @@
 #include "Binary.h"
 
-/* DEBUG 
-   FOR PRINTING INSTRUCTION NAME BY CODE
-   Returns instruction name by given code. */
-char* GetInsNameByCode(int insCode) {
-    if (insCode <0 || insCode > 15)
-        return CopyStringToHeap("NaN");
-
-    char* insnames[16];
-    insnames[0] = "mov";
-    insnames[1] = "cmp";
-    insnames[2] = "add";
-    insnames[3] = "sub";
-
-    insnames[4] = "lea";
-    insnames[5] = "clr";
-    insnames[6] = "not";
-    insnames[7] = "inc";
-
-    insnames[8] = "dec";
-    insnames[9] = "jmp";
-    insnames[10] = "bne";
-    insnames[11] = "jsr";
-
-    insnames[12] = "red";
-    insnames[13] = "prn";
-    insnames[14] = "rts";
-    insnames[15] = "stop";
-    
-    return CopyStringToHeap(insnames[insCode]);
-}
-
-/* Gets instruction type according by instruction name.
-   Argument:
-    ins     -- String containing istruction name.
-   Returns:
-    Instruction number according to InstructionsEnum.
-    -1 if instruction name not recognized. */
-int GetInstructionType(char* ins) {
-    if (CompareStrings(ins, "mov"))
-        return ins_mov;
-    if (CompareStrings(ins, "cmp"))
-        return ins_cmp;
-    if (CompareStrings(ins, "add"))
-        return ins_add;
-    if (CompareStrings(ins, "sub"))
-        return ins_sub;
-
-    if (CompareStrings(ins, "lea"))
-        return ins_lea;
-    if (CompareStrings(ins, "clr"))
-        return ins_clr;
-    if (CompareStrings(ins, "not"))
-        return ins_not;
-    if (CompareStrings(ins, "inc"))
-        return ins_inc;
-
-    if (CompareStrings(ins, "dec"))
-        return ins_dec;
-    if (CompareStrings(ins, "jmp"))
-        return ins_jmp;
-    if (CompareStrings(ins, "bne"))
-        return ins_bne;
-    if (CompareStrings(ins, "jsr"))
-        return ins_jsr;
-
-    if (CompareStrings(ins, "red"))
-        return ins_red;
-    if (CompareStrings(ins, "prn"))
-        return ins_prn;
-    if (CompareStrings(ins, "rts"))
-        return ins_rts;
-    if (CompareStrings(ins, "stop"))
-        return ins_stop;
-
-    return -1;
-}
-
-/* Return info about given instruction. */
-InsInfo GetInstructionInfo(int code) {
-    InsInfo info;
-
-    switch (code)
-    {
-    case ins_mov:
-        info.ins = ins_mov;
-        info.opcode = 0;
-        info.funct = -1;
-        info.amodes_source = 1+2+4+8; /* 0,1,2,3 */
-        info.amodes_dest = 2+4+8; /* 1,2,3 */
-        break;
-    case ins_cmp:
-        info.ins = ins_cmp;
-        info.opcode = 1;
-        info.funct = -1;
-        info.amodes_source = 1+2+4+8; /* 0,1,2,3 */
-        info.amodes_dest = 1+2+4+8; /* 0,1,2,3 */
-        break;
-    case ins_add:
-        info.ins = ins_add;
-        info.opcode = 2;
-        info.funct = 10;
-        info.amodes_source = 1+2+4+8; /* 0,1,2,3 */
-        info.amodes_dest = 2+4+8; /* 1,2,3 */
-        break;
-    case ins_sub:
-        info.ins = ins_sub;
-        info.opcode = 2;
-        info.funct = 11;
-        info.amodes_source = 1+2+4+8; /* 0,1,2,3 */
-        info.amodes_dest = 2+4+8; /* 1,2,3 */
-        break;
-
-    case ins_lea:
-        info.ins = ins_lea;
-        info.opcode = 4;
-        info.funct = -1;
-        info.amodes_source = 2+4; /* 1,2 */
-        info.amodes_dest = 2+4+8; /* 1,2,3 */
-        break;
-    case ins_clr:
-        info.ins = ins_clr;
-        info.opcode = 5;
-        info.funct = 10;
-        info.amodes_source = 0; /* No source operand. */
-        info.amodes_dest = 2+4+8; /* 1,2,3 */
-        break;  
-    case ins_not:
-        info.ins = ins_not;
-        info.opcode = 5;
-        info.funct = 11;
-        info.amodes_source = 0; /* No source operand. */
-        info.amodes_dest = 2+4+8; /* 1,2,3 */
-        break;  
-    case ins_inc:
-        info.ins = ins_inc;
-        info.opcode = 5;
-        info.funct = 12;
-        info.amodes_source = 0; /* No source operand. */
-        info.amodes_dest = 2+4+8; /* 1,2,3 */
-        break;  
-
-    case ins_dec:
-        info.ins = ins_dec;
-        info.opcode = 5;
-        info.funct = 13;
-        info.amodes_source = 0; /* No source operand. */
-        info.amodes_dest = 2+4+8; /* 1,2,3 */
-        break;  
-    case ins_jmp:
-        info.ins = ins_jmp;
-        info.opcode = 9;
-        info.funct = 10;
-        info.amodes_source = 0; /* No source operand. */
-        info.amodes_dest = 2+4; /* 1,2 */
-        break;  
-    case ins_bne:
-        info.ins = ins_bne;
-        info.opcode = 9;
-        info.funct = 11;
-        info.amodes_source = 0; /* No source operand. */
-        info.amodes_dest = 2+4; /* 1,2 */
-        break;  
-    case ins_jsr:
-        info.ins = ins_jsr;
-        info.opcode = 9;
-        info.funct = 12;
-        info.amodes_source = 0; /* No source operand. */
-        info.amodes_dest = 2+4; /* 1,2 */
-        break;  
-
-    case ins_red:
-        info.ins = ins_red;
-        info.opcode = 12;
-        info.funct = -1;
-        info.amodes_source = 0; /* No source operand. */
-        info.amodes_dest = 2+4+8; /* 1,2,3 */
-        break;      
-    case ins_prn:
-        info.ins = ins_prn;
-        info.opcode = 13;
-        info.funct = -1;
-        info.amodes_source = 0; /* No source operand. */
-        info.amodes_dest = 1+2+4+8; /* 0,1,2,3 */
-        break;      
-    case ins_rts:
-        info.ins = ins_rts;
-        info.opcode = 14;
-        info.funct = -1;
-        info.amodes_source = 0; /* No source operand. */
-        info.amodes_dest = 0; /* No destination operand. */
-        break;      
-    case ins_stop:
-        info.ins = ins_stop;
-        info.opcode = 15;
-        info.funct = -1;
-        info.amodes_source = 0; /* No source operand. */
-        info.amodes_dest = 0; /* No destination operand. */
-        break;      
-    
-    default:
-        info.ins = -1;
-        info.opcode = -1;
-        info.funct = -1;
-        info.amodes_source = -1;
-        info.amodes_dest = -1;
-        return info;
-    }
-
-    return info;
-}
-
 
 
 /* Parses instruction line and produces Ins structure allocated on heap.
@@ -371,66 +160,7 @@ Ins* ParseInstructionLine(char* line, int* pos, List* errors, DArrayInt* slr, in
     return ins;
 }
 
-/* Takes line with pos after ".string"  directive keyword.*/
-char* ParseStringDirectiveArgument(char* line, int* pos, List* errors, int lineNum, DArrayInt* slr ) {
-    int start; /* Position of the first character inside "". */
-    int len; /* Length of string inside "". */
-    int spos; /* Position inside of string between "". */
-    char* str; /* Parsed string. */
 
-    /* Skipping blanks. */
-    SkipBlank(line, pos);
-
-    /* Checking if line ended without an argument. */
-    if (line[*pos] == '\0') {
-        AddError(errors, slr->data[lineNum], ErrDt_StrNoArgument, line);
-    }
-
-    /* Checking if first character is ". */
-    if (line[*pos] != '"') {
-        AddError(errors, slr->data[lineNum], ErrDt_StrInvalidArg, line);
-        return NULL;
-    }
-
-    /* Advancing position by 1 and marking start. */
-    (*pos)++;
-    start = *pos;
-
-    /* Searching for closing " and counting length.*/
-    while (line[*pos] != '"' && line[*pos] != '\0') {
-        (*pos)++;
-        len++;
-    }
-    
-    /* If string wasn't closed. */
-    if (line[*pos] == '\0') {
-        AddError(errors, slr->data[lineNum], ErrDt_StrMissingClosing, line);
-        return NULL;
-    }
-
-    /* Checking for extra text. Parsing will continue, but error will be saved. */
-    (*pos)++;
-    SkipBlank(line, pos);
-    if (!IsBlank(line[*pos]) && line[*pos] != '\0') {
-        AddError(errors, slr->data[lineNum], ErrDt_StrExtra, line);
-    }
-
-    /* Allocating result string. */
-    str = (char*)malloc(sizeof(char)*(len+1));
-    if (str == NULL) {
-        perror("Failed to allocate memory.");
-        exit(1);
-    }
-
-    /* Copying string content. */
-    for (spos=0; spos<len; spos++)
-        str[spos] = line[start+spos];
-
-    /* Adding termination character. */
-    str[spos] = '\0';
-
-    return str;
-}
 
 
 /* Determines type of the directive:
@@ -599,31 +329,22 @@ void DataToBinary(DynArr* dataArgs, BinarySegment* data) {
     lineNum -- Number of line in expanded source code.
     errors  -- List of errors.
     slr     -- Source line reference.
-   Returns:
-    Address in data segment of first word where data is written.
-    -1 if parsing of arguments failed. */
-int StringToBinary(char* line, int* pos, BinarySegment* data, int lineNum, List* errors, DArrayInt* slr) {
-    int adr; /* First data word address. */
+ */
+void StringToBinary(char* arg, BinarySegment* data) {
     int i; /* Iterator. */
-
-    /* Remembering address. */
-    adr = NextSegmentAddress(data);
-
-    /* Getting argument. */
-    char* val = ParseStringDirectiveArgument(line, pos, errors, lineNum, slr);
-    if (val != NULL) 
-        return -1;
+    int are = 4; /* Absolute mode ARE = 100 = 4. */
+    int word; /* Binary word. */
 
     /* Writing individual letters to data segment. */    
-    while (line[i] != '\0') {
-        AddBinary(data, line[i]);
+    while (arg[i] != '\0') {
+        word = arg[i];
+        word += are << 16;
+        AddBinary(data, word);
         i++;
     }
 
     /* Adding closing 0 word. */
     AddBinary(data, 0);
-
-    return adr;
 }
 
 
@@ -779,23 +500,46 @@ Symbol* StatementToBinary(char* line, List* unresolved, BinarySegment* code, Bin
 
         /* If directive is .string. */
         if (dir_type == dir_string) {
-            int symbol_adr; /* Address of word in data segment where symbol points to. */
-            symbol_adr = StringToBinary(line, &pos, data, lineNum, errors, slr);
-            /* Checking if failed. */
-            if (symbol_adr == -1)
-                return;
-            /* If line opened with label trying to save it to symbols table. */
-            if (lptr != NULL) {
-                Symbol* smb = CreateSymbol(label, symbol_adr, att_data);
-                AddSymbol(symbols, smb, lineNum, errors, slr);
+            List* raw_string_args; /* List of raw (string) arguments for .string.*/
+            char* arg; /* Parsed argument (content of ""). */
+            int data_counter = NextSegmentAddress(data); /* Adress of this data block. */
+            /* Getting raw arguments of .string directive. */
+            List* raw_string_args = GetRawArgs(line, &pos, errors);
+            /* Checking if arguments are present. */
+            if (raw_string_args->count == 0) {
+                AddError(errors, ErrDt_StrNoArgument, line, NULL);
+                FreeListAndData(raw_string_args);
+                return NULL;
             }
-            return;
+            /* Checking if more that one argument given. */
+            if (raw_string_args->count > 1) {
+                AddError(errors, ErrDt_StrExtra, line, NULL);
+            }
+            /* Parsing the argument. */
+            arg = ParseStringArgument(raw_string_args->head->data, errors);
+            /* If parsing failed. */
+            if (arg == NULL) {
+                FreeListAndData(raw_string_args);
+                free(arg);
+                return NULL;
+            }
+            /* Adding string data to data segment. */
+            StringToBinary(arg, data);
+            /* Freeing memory. */
+            FreeListAndData(raw_string_args);
+            free(arg);
+
+            /* If line opened with label returning the symbol. */
+            if (lptr != NULL)
+                return CreateSymbol(label, data_counter, att_data);
+            else
+                return NULL;
         }
+
         /* If directive is .entry or .extern*/
         if (dir_type == dir_entry || dir_type == dir_extern) {
             char arg[MAX_LABEL_LEN+1]; /* Buffer for holding directive argument. */
             char* res;  /* Result of taking directive argument. */
-            Symbol* smb; /* Variable for stroing symbol from argument. */
             res = GetSymbolDirectiveArgument(line, &pos, arg, lineNum, errors, slr);
             /* Not succeeded in taking the argument. */
             if (res == NULL)

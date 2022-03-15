@@ -46,6 +46,26 @@ int IsBlankChar(char c);
     pos will be set to position where first non-blank character is met.*/
 void SkipBlank(char* s, int* pos);
 
+/* Skips consequitive commas (poissibly separated by blanks) after given position
+   and advances position to first non-comma character.
+   Returns number of commas skipped.
+   Arguments:
+    line    -- Instruction line.
+    pos     -- Position of character after command name.
+   */
+int SkipCommas(char* line, int* pos);
+
+/* Checks if string is a reserved assembly
+   word and returns its type.
+   Arguments:
+    s   -- String to check (null-terminated)
+   Returns:
+    0   -- s not a reserved word.
+    1   -- s is an instruction name.
+    2   -- s is a register name.
+    3   -- s is a keyword.
+*/
+int IsReservedWord(char* s);
 
 /* Gets the word from given line starting from given
    position and advances position counter. Considers that word ends
@@ -65,28 +85,13 @@ void SkipBlank(char* s, int* pos);
 */
 char* GetNextWord(char* line, int* pos, char* word, int maxLen, char* end);
 
-/* Searches word in given line and returns position
-   where word starts if it is present. If word is 
-   present multiple times first occurence is returned.
-   Arguments:
-    line    -- line to search word in (null-terminated)
-    word    -- word to search (null-terminated)
-   Return:
-    If word is found position of first word symbol in line returned.
-    If word isn't found -1 is returned.  */
-int FindWord(char* line, char* word);
-
-/* Checks if string is a reserved assembly
-   word and returns its type.
-   Arguments:
-    s   -- String to check (null-terminated)
+/* Gets instruction type according by instruction name.
+   Argument:
+    ins     -- String containing istruction name.
    Returns:
-    0   -- s not a reserved word.
-    1   -- s is an instruction name.
-    2   -- s is a register name.
-    3   -- s is a keyword.
-*/
-int IsReservedWord(char* s);
+    Instruction number according to InstructionsEnum.
+    -1 if instruction name not recognized. */
+int GetInstructionType(char* ins);
 
 /* Tries to get label before assembly statement.
    Label considered to be first word in line if it ends with ':' character.
@@ -102,6 +107,15 @@ int IsReservedWord(char* s);
     If label isn't found function will return NULL. */
 char* TryGetLabel(char* line, int* pos, char* label, int maxLen);
 
+/* Gets next argument string starting from specified position in line.
+   Allocates result on heap. Advances position to character after argument.
+   Arguments:
+    line    -- Instruction line.
+    pos     -- Position in instruction line after which next argument should be taken.
+   Returns:
+    Argument string allocated on heap, or NULL if only blank symbols were after given position.  */
+char* GetNextArg(char* line, int* pos);
+
 /* Gets arguments from given line as strings.
    Advances line position to line termination character.
    Checks for comma errors.
@@ -116,11 +130,57 @@ char* TryGetLabel(char* line, int* pos, char* label, int maxLen);
     List of stings of arguments. Empty list will be returned if no arguments.*/
 List* GetRawArgs(char* line, int* pos, Errors* errors);
 
-/* Parses instruction argument.
-NULL if failed! */
-InsArg* ParseInsArg(char* arg, List* errors, int lineNum, DArrayInt* slr);
-
+/* Parses a string that is a number. 
+   Assumes that string represents a number.
+   Arguments:
+    s   -- Number in a string form.
+   Returns:
+    Number as int.
+    0 if failed.  */
 int ParseNumber(char* s);
+
+/* Parses a register name (rx, rxx)
+   and returns number of a register.
+   Arguments:
+    s   -- String containing register name.
+   Returns:
+    Number of a register as int.
+    -1 if parsing failed. */
+int ParseRegisterName(char* s);
+
+/* Tries to get indexer part as string from label argument.
+   (rxx from argument label[rxx]).
+   Moves position to character after the closing bracket.
+   Allocates resulting string on heap.
+   Arguments:
+    arg     -- Label argument.
+    pos     -- Position after label name.
+    failed  -- Pointer to result indicator set to 1 if parsing errors encountered.
+               If indexer not found left as it was.
+   Returns:
+    Indexer content as sting (if arg is label[r0] "r0" will be returned).
+ */
+char* GetIndexer(char* arg, int* pos, int* failed, Errors* errors);
+
+/* Parses label argument of instruction. (label, or label[r0] for example).
+   Arguments:
+    arg     -- Label argument as string.
+    parg    -- Pointer for returning result.
+    errors  -- List of errors.
+   Returns:
+    Pointer to parsed argument structure if succeeded.
+    NULL if parsing failed. */
+InsArg* ParseLabelArgument(char* arg, InsArg* parg, Errors* errors);
+
+/*Parses instruction argument.
+  Arguments:
+   arg      -- String containing the argument.
+   errors   -- Errors list.
+  Returns:
+   Structure that describes the argument.
+   NULL if failed. */
+InsArg* ParseInsArg(char* arg, Errors* errors);
+
 
 char* GetSymbolDirectiveArgument(char* line, int* pos, char arg[MAX_LABEL_LEN+1], int lineNum, List* errors, DArrayInt* slr);
 

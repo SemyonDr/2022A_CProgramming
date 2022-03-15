@@ -6,7 +6,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Mon Mar 14 11:08:16 2022
+# Make data base, printed on Tue Mar 15 09:10:16 2022
 
 # Variables
 
@@ -79,7 +79,7 @@ PATH = /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/
 # environment
 GPG_AGENT_INFO = /run/user/1000/gnupg/S.gpg-agent:0:1
 # environment
-SESSION_MANAGER = local/deer-mint:@/tmp/.ICE-unix/1099,unix/deer-mint:/tmp/.ICE-unix/1099
+SESSION_MANAGER = local/deer-mint:@/tmp/.ICE-unix/1084,unix/deer-mint:/tmp/.ICE-unix/1084
 # environment
 XDG_RUNTIME_DIR = /run/user/1000
 # environment
@@ -97,7 +97,7 @@ XDG_SESSION_DESKTOP = cinnamon
 # environment
 SSH_AUTH_SOCK = /run/user/1000/keyring/ssh
 # environment
-GIO_LAUNCHED_DESKTOP_FILE_PID = 2951
+GIO_LAUNCHED_DESKTOP_FILE_PID = 2532
 # automatic
 %F = $(notdir $%)
 # environment
@@ -113,7 +113,7 @@ QT_QPA_PLATFORMTHEME = qt5ct
 # environment
 XDG_SEAT = seat0
 # environment
-SSH_AGENT_PID = 1168
+SSH_AGENT_PID = 1155
 # environment
 ORIGINAL_XDG_CURRENT_DESKTOP = X-Cinnamon
 # environment
@@ -149,7 +149,7 @@ SHLVL = 0
 # makefile (from 'Makefile', line 2)
 CC = gcc
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-acd5f1c7-9130-4721-9fdc-3bc269532c07.sock
+VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-e96bb126-2741-4514-a1d7-9ce385a19ce0.sock
 # environment
 XDG_SESSION_ID = c2
 # environment
@@ -215,7 +215,7 @@ GJS_DEBUG_OUTPUT = stderr
 # environment
 LANG = C
 # environment
-VSCODE_PID = 2951
+VSCODE_PID = 2532
 # variable set hash-table stats:
 # Load=103/1024=10%, Rehash=0, Collisions=8/133=6%
 
@@ -278,7 +278,6 @@ Makefile:
 #  File has been updated.
 #  Successfully updated.
 
- 
 file:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
@@ -287,6 +286,7 @@ file:
 	$(CC) File.c $(CFLAGS) -c -o ./bin/object/file.o
 
 compile:
+ 
 #  Implicit rule search has not been done.
 #  Implicit/static pattern stem: ''
 #  File does not exist.
@@ -347,6 +347,6 @@ err:
 # strcache performance: lookups = 50 / hit rate = 30%
 # hash-table stats:
 # Load=35/8192=0%, Rehash=0, Collisions=1/50=2%
-# Finished Make data base on Mon Mar 14 11:08:16 2022
+# Finished Make data base on Tue Mar 15 09:10:16 2022
 
  

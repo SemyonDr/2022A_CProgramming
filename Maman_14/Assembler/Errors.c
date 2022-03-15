@@ -267,7 +267,7 @@ void PrintError(Error* er) {
         break;
 
     case ErrDt_StrMissingClosing:
-        printf("Closing \" is missing.");
+        printf("Closing \" is missing in argument [ %s ].", er->info);
         break;
 
     case ErrDt_StrExtra:

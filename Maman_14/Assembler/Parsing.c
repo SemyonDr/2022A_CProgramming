@@ -9,6 +9,8 @@ int IsDigit(char c) {
         return 0;
 }
 
+
+
 /* Returns 1 if line is a number
    and 0 if it is not. */
 int IsNumber(char* s) {
@@ -30,6 +32,8 @@ int IsNumber(char* s) {
     }
     return 1;
 }
+
+
 
 /* Checks if string s contains only
    letter and number characters.
@@ -56,6 +60,8 @@ int IsAz09(char* s) {
     return 1;
 }
 
+
+
 /* Checks if character c is a blank character.
    Blank characters are ' ' '\t' '\n'.
    Arguments:
@@ -68,6 +74,8 @@ int IsBlankChar(char c) {
         return 1;
     return 0;
 }
+
+
 
 /* Skips blank characters (space and tab) in
    given string starting from position pos.
@@ -84,117 +92,29 @@ void SkipBlank(char* s, int* pos) {
     }
 }
 
-/* Gets the word from given line starting from given
-   position and advances position counter. Considers that word ends
-   if new line, termination, space, tab or any of "end" characters are met.
-   Skips leading blank characters.
+
+
+/* Skips consequitive commas (poissibly separated by blanks) after given position
+   and advances position to first non-comma character.
+   Returns number of commas skipped.
    Arguments:
-    line    -- Source line (null-terminated)
-    pos     -- Initial position in line.
-    word    -- Buffer string to hold word.
-    maxLen  -- Maximum length of a word to get (without termination character)
-    end     -- String containing additional characters that considered word end.
-               Can be NULL.
-   Returns:
-    Directly returns word from the line, or NULL if nothing was taken.
-    word    -- Word from line.
-    pos     -- Will be set to first character after the word.
-*/
-char* GetNextWord(char* line, int* pos, char* word, int maxLen, char* end) {
-    int c = 1; /* Flag that shows if copying of the word should continue. */
-    int word_pos = 0; /* Iterator for resulting word. */
+    line    -- Instruction line.
+    pos     -- Position of character after command name.
+   */
+int SkipCommas(char* line, int* pos) {
+    int num = 0; /* Number of commas. */
 
-    /* Checking if buffer has size or exists */
-    if (word == NULL || maxLen == 0)
-        return NULL;
-
-    /* Skipping leading blanks */
     SkipBlank(line, pos);
-
-    /* Checking if line has ended after leading blanks. */
-    if (line[*pos] == '\0')
-        return NULL;
-
-    /* Copying word characters and searching for the end. */
-    while (c) {
-        /* Iterator for "end" characters */
-        int end_iter = 0; 
-
-        /* Copying character */
-        word[word_pos] = line[*pos];
-
-        /* Advancing iterators */
-        word_pos++;
-        (*pos)++;
-
-        /* Checking if max word length was read */
-        if (word_pos == maxLen)
-            c = 0;
-
-        /* Checking if blank character is met */
-        if (c && IsBlankChar(line[*pos]))
-            c = 0;
-
-        /* Checking if line has ended */
-        if (c && (line[*pos] == '\0'))
-            c = 0;
-
-        /* Checking if any of "end" symbols are met */
-        if (c && end != NULL) {
-            while (end[end_iter] != '\0') {
-                if (line[*pos] == end[end_iter])
-                    c = 0;
-                end_iter++;
-            }
-        }
+    while (line[*pos] == ',') {
+        num++;      /* Counting comma. */
+        (*pos)++;   /* Moving position to the next char. */
+        SkipBlank(line, pos);
     }
 
-    /* Adding termination */
-    word[word_pos] = '\0';
-
-    return word;
+    return num;
 }
 
-/* Searches word in given line and returns position
-   where word starts if it is present. If word is 
-   present multiple times first occurence is returned.
-   Arguments:
-    line    -- line to search word in (null-terminated)
-    word    -- word to search (null-terminated)
-   Return:
-    If word is found position of first word symbol in line returned.
-    If word isn't found -1 is returned.  */
-int FindWord(char* line, char* word) {
-    int w_start = 0; /* First position of found word. */
-    int line_pos = 0; /* Position in line. */
-    int word_pos = 0; /* Position in word when comparing. */
 
-    /* In case word has 0 length. */
-    if (word[0] == '\0')
-        return 0;
-
-    while (line[line_pos] != '\0') {
-        if (line[line_pos] == word[word_pos]) {
-            /* If symbols match advancing position in word. */
-            if (word_pos == 0)
-                w_start = line_pos; /* Remembering where word starts */
-            word_pos++;
-            
-            /* If full word is found returning result. */
-            if (word[word_pos] == '\0')
-                return w_start;
-        }
-        else {
-            /* If symbol doesn't match resetting position in word. */
-            word_pos = 0;
-        }        
-
-        line_pos++;
-    }
-
-    /* If word is not already found it doesn't exist in the line*/
-    return -1;
-}
 
 /* Checks if string is a reserved assembly
    word and returns its type.
@@ -276,8 +196,130 @@ int IsReservedWord(char* s) {
     return 0;
 }
 
-/* 
-   Tries to get label before assembly statement.
+
+
+/* Gets the word from given line starting from given
+   position and advances position counter. Considers that word ends
+   if new line, termination, space, tab or any of "end" characters are met.
+   Skips leading blank characters.
+   Arguments:
+    line    -- Source line (null-terminated)
+    pos     -- Initial position in line.
+    word    -- Buffer string to hold word.
+    maxLen  -- Maximum length of a word to get (without termination character)
+    end     -- String containing additional characters that considered word end.
+               Can be NULL.
+   Returns:
+    Directly returns word from the line, or NULL if nothing was taken.
+    word    -- Word from line.
+    pos     -- Will be set to first character after the word.
+*/
+char* GetNextWord(char* line, int* pos, char* word, int maxLen, char* end) {
+    int c = 1; /* Flag that shows if copying of the word should continue. */
+    int word_pos = 0; /* Iterator for resulting word. */
+
+    /* Checking if buffer has size or exists */
+    if (word == NULL || maxLen == 0)
+        return NULL;
+
+    /* Skipping leading blanks */
+    SkipBlank(line, pos);
+
+    /* Checking if line has ended after leading blanks. */
+    if (line[*pos] == '\0')
+        return NULL;
+
+    /* Copying word characters and searching for the end. */
+    while (c) {
+        /* Iterator for "end" characters */
+        int end_iter = 0; 
+
+        /* Copying character */
+        word[word_pos] = line[*pos];
+
+        /* Advancing iterators */
+        word_pos++;
+        (*pos)++;
+
+        /* Checking if max word length was read */
+        if (word_pos == maxLen)
+            c = 0;
+
+        /* Checking if blank character is met */
+        if (c && IsBlankChar(line[*pos]))
+            c = 0;
+
+        /* Checking if line has ended */
+        if (c && (line[*pos] == '\0'))
+            c = 0;
+
+        /* Checking if any of "end" symbols are met */
+        if (c && end != NULL) {
+            while (end[end_iter] != '\0') {
+                if (line[*pos] == end[end_iter])
+                    c = 0;
+                end_iter++;
+            }
+        }
+    }
+
+    /* Adding termination */
+    word[word_pos] = '\0';
+
+    return word;
+}
+
+
+
+/* Gets instruction type according by instruction name.
+   Argument:
+    ins     -- String containing istruction name.
+   Returns:
+    Instruction number according to InstructionsEnum.
+    -1 if instruction name not recognized. */
+int GetInstructionType(char* ins) {
+    if (CompareStrings(ins, "mov"))
+        return ins_mov;
+    if (CompareStrings(ins, "cmp"))
+        return ins_cmp;
+    if (CompareStrings(ins, "add"))
+        return ins_add;
+    if (CompareStrings(ins, "sub"))
+        return ins_sub;
+
+    if (CompareStrings(ins, "lea"))
+        return ins_lea;
+    if (CompareStrings(ins, "clr"))
+        return ins_clr;
+    if (CompareStrings(ins, "not"))
+        return ins_not;
+    if (CompareStrings(ins, "inc"))
+        return ins_inc;
+
+    if (CompareStrings(ins, "dec"))
+        return ins_dec;
+    if (CompareStrings(ins, "jmp"))
+        return ins_jmp;
+    if (CompareStrings(ins, "bne"))
+        return ins_bne;
+    if (CompareStrings(ins, "jsr"))
+        return ins_jsr;
+
+    if (CompareStrings(ins, "red"))
+        return ins_red;
+    if (CompareStrings(ins, "prn"))
+        return ins_prn;
+    if (CompareStrings(ins, "rts"))
+        return ins_rts;
+    if (CompareStrings(ins, "stop"))
+        return ins_stop;
+
+    return -1;
+}
+
+
+
+/* Tries to get label before assembly statement.
    Label considered to be first word in line if it ends with ':' character.
    If label is found moves line position to character after ':'.
    If label wasn't found leaves position as it was.
@@ -308,25 +350,7 @@ char* TryGetLabel(char* line, int* pos, char* label, int maxLen) {
         return NULL;
 }
 
-/* Skips consequitive commas (poissibly separated by blanks) after given position
-   and advances position to first non-comma character.
-   Returns number of commas skipped.
-   Arguments:
-    line    -- Instruction line.
-    pos     -- Position of character after command name.
-   */
-int SkipCommas(char* line, int* pos) {
-    int num = 0; /* Number of commas. */
 
-    SkipBlank(line, pos);
-    while (line[*pos] == ',') {
-        num++;      /* Counting comma. */
-        (*pos)++;   /* Moving position to the next char. */
-        SkipBlank(line, pos);
-    }
-
-    return num;
-}
 
 /* Gets next argument string starting from specified position in line.
    Allocates result on heap. Advances position to character after argument.
@@ -357,6 +381,8 @@ char* GetNextArg(char* line, int* pos) {
     printf("DEBUG: \t\tGot argument [%s]. Now pos is %d.\n", arg, *pos);
     return arg;
 }
+
+
 
 /* Gets arguments from given line as strings.
    Advances line position to line termination character.
@@ -411,8 +437,15 @@ List* GetRawArgs(char* line, int* pos, Errors* errors) {
     return args;
 }
 
+
+
 /* Parses a string that is a number. 
-   Assumes that string represents a number. */
+   Assumes that string represents a number.
+   Arguments:
+    s   -- Number in a string form.
+   Returns:
+    Number as int.
+    0 if failed.  */
 int ParseNumber(char* s) {
     char sign = '+'; /* Character for storing sign of the number. */
     int pos = 0; /* Position in digits string. */
@@ -449,7 +482,15 @@ int ParseNumber(char* s) {
     return num;
 }
 
-/* -1 if not a register. */
+
+
+/* Parses a register name (rx, rxx)
+   and returns number of a register.
+   Arguments:
+    s   -- String containing register name.
+   Returns:
+    Number of a register as int.
+    -1 if parsing failed. */
 int ParseRegisterName(char* s) {
     /* Checking if first character is 'r'. */
     if (s[0] != 'r')
@@ -474,12 +515,21 @@ int ParseRegisterName(char* s) {
     return -1;
 }
 
-/* Tries to get indexer from label argument.
-   Moves position to character after closing bracket.
+
+
+/* Tries to get indexer part as string from label argument.
+   (rxx from argument label[rxx]).
+   Moves position to character after the closing bracket.
    Allocates resulting string on heap.
-   NULL if not found (brackets are empty or not exist).
+   Arguments:
+    arg     -- Label argument.
+    pos     -- Position after label name.
+    failed  -- Pointer to result indicator set to 1 if parsing errors encountered.
+               If indexer not found left as it was.
+   Returns:
+    Indexer content as sting (if arg is label[r0] "r0" will be returned).
  */
-char* GetIndexer(char* arg, int* pos, int* failed, List* errors, int lineNum, DArrayInt* slr) {
+char* GetIndexer(char* arg, int* pos, int* failed, Errors* errors) {
     char* indexer; /* Variable for holding indexer. */
     int i =0; /* Indexer string iterator. */
     int start = 0; /* Starting position of indexer name. */
@@ -504,7 +554,7 @@ char* GetIndexer(char* arg, int* pos, int* failed, List* errors, int lineNum, DA
 
     /* If there is no name after opening bracket. */
     if (len == 0) {
-        AddError(errors, slr->data[lineNum], ErrArg_MissingIndex, arg);
+        AddError(errors, ErrArg_MissingIndex, arg, NULL);
         *failed = 1;
         return NULL;
     }
@@ -514,12 +564,12 @@ char* GetIndexer(char* arg, int* pos, int* failed, List* errors, int lineNum, DA
         (*pos)++;
         /* Checking for extra text after closing bracket. */
         if (arg[*pos] != '\n' && arg[*pos] != '\0') {
-            AddError(errors, slr->data[lineNum], ErrArg_Extra, arg);
+            AddError(errors, ErrArg_Extra, arg, NULL);
             /* Not considered failure, but error will be registered. */
         }
     }
     else /* If there is no closing bracket, but name is present. */ {
-        AddError(errors, slr->data[lineNum], ErrArg_MissingBracket, arg);
+        AddError(errors, ErrArg_MissingBracket, arg, NULL);
         *failed = 1;
     }
     
@@ -541,8 +591,18 @@ char* GetIndexer(char* arg, int* pos, int* failed, List* errors, int lineNum, DA
     return indexer;
 }
 
-/* Writes into provided structure, returns NULL if failed, or pointer to structure. */
-InsArg* ParseLabelArgument(char* arg, InsArg* parg, List* errors, int lineNum, DArrayInt* slr) {
+
+
+/* Writes into provided structure, returns NULL if failed, or pointer to structure.
+   Parses label argument of instruction. (label, or label[r0] for example).
+   Arguments:
+    arg     -- Label argument as string.
+    parg    -- Pointer for returning result.
+    errors  -- List of errors.
+   Returns:
+    Pointer to parsed argument structure if succeeded.
+    NULL if parsing failed. */
+InsArg* ParseLabelArgument(char* arg, InsArg* parg, Errors* errors) {
     int failed = 0; /* Flag that shows if errors were found while parsing label.
                         Used for accumulating error codes before returning NULL from function. */
     int pos = 0; /* Char position in arg. */
@@ -559,22 +619,22 @@ InsArg* ParseLabelArgument(char* arg, InsArg* parg, List* errors, int lineNum, D
 
     /* Checking if label name is valid. */
     if (!IsAz09(parg->label) || IsDigit(parg->label[0])) {
-        AddError(errors, slr->data[lineNum], ErrArg_InvalidLabel, arg);
+        AddError(errors, ErrArg_InvalidLabel, arg, NULL);
         failed = 1;
     }
 
     /* Checking if label is less than 31 character. */
     if (pos == 31 && arg[pos] != '[' && arg[pos] != '\0') {
-        AddError(errors, slr->data[lineNum], ErrArg_LongSymbol, arg);
+        AddError(errors, ErrArg_LongSymbol, arg, NULL);
         failed = 1;
     }
 
     /* Trying to get indexer. */
-    if ((indexer = GetIndexer(arg, &pos, &failed, errors, lineNum, slr)) != NULL) {
+    if ((indexer = GetIndexer(arg, &pos, &failed, errors)) != NULL) {
         /* If indexer is present trying to parse it. */
         parg->val = ParseRegisterName(indexer);
         if (parg->val == -1) { /* If failed to parse. */
-            AddError(errors, slr->data[lineNum], ErrArg_InvalidIndex, arg);
+            AddError(errors, ErrArg_InvalidIndex, arg, NULL);
             failed = 1;
         }
         /* Freeing memory. */
@@ -597,9 +657,16 @@ InsArg* ParseLabelArgument(char* arg, InsArg* parg, List* errors, int lineNum, D
         return parg;
 }
 
-/* Parses instruction argument.
-NULL if failed! */
-InsArg* ParseInsArg(char* arg, List* errors, int lineNum, DArrayInt* slr) {
+
+
+/*Parses instruction argument.
+  Arguments:
+   arg      -- String containing the argument.
+   errors   -- Errors list.
+  Returns:
+   Structure that describes the argument.
+   NULL if failed. */
+InsArg* ParseInsArg(char* arg, Errors* errors) {
     InsArg* parg;   /* Parsed argument. */
 
     /* Allocating argument structure. */
@@ -614,7 +681,7 @@ InsArg* ParseInsArg(char* arg, List* errors, int lineNum, DArrayInt* slr) {
         }
         else {
             /* If arg starts with # it should be a number. */
-            AddError(errors, slr->data[lineNum], ErrArg_NotANumber, arg);
+            AddError(errors, ErrArg_NotANumber, arg, NULL);
             free(parg);
             return NULL;
         }
@@ -631,10 +698,10 @@ InsArg* ParseInsArg(char* arg, List* errors, int lineNum, DArrayInt* slr) {
     }
 
     /* Now if argument isn't # number, or rxx register it is a label possibly with index. */ 
-    return ParseLabelArgument(arg, parg, errors, lineNum, slr);
+    return ParseLabelArgument(arg, parg, errors);
 }
 
-char* GetSymbolDirectiveArgument(char* line, int* pos, char arg[MAX_LABEL_LEN+1], int lineNum, List* errors, DArrayInt* slr) {
+char* GetSymbolDirectiveArgument(char* line, int* pos, char arg[MAX_LABEL_LEN+1], Errors* errors) {
     int i = 0; /* Iterator. */
     char word[MAX_STATEMENT_LEN+2]; /* Buffer wor storing word from line. */
     char* res;  /* Result of getting the word. */
@@ -644,19 +711,19 @@ char* GetSymbolDirectiveArgument(char* line, int* pos, char arg[MAX_LABEL_LEN+1]
 
     /* Checking if word is present. */
     if (res == NULL) {
-        AddError(errors, slr->data[lineNum], ErrDir_NoArgument, line);
+        AddError(errors, ErrDir_NoArgument, line, NULL);
         return NULL;
     }
 
     /* Checking if word not exeeds MAX_LABEL_LEN. */
     if (StringLen(word) > 31) {
-        AddError(errors, slr->data[lineNum], ErrArg_LongSymbol, line);
+        AddError(errors, ErrArg_LongSymbol, line, NULL);
         return NULL;
     }
 
     /* Checking if word is AZ09 and starts with a letter. */
     if (!IsAz09(word) || IsDigit(word[0])) {
-        AddError(errors, slr->data[lineNum], ErrArg_InvalidLabel, line);
+        AddError(errors, ErrArg_InvalidLabel, line, NULL);
         return NULL;
     }
 
@@ -671,7 +738,7 @@ char* GetSymbolDirectiveArgument(char* line, int* pos, char arg[MAX_LABEL_LEN+1]
     res = GetNextWord(line, pos, word, MAX_STATEMENT_LEN+1, NULL);
     if (res != NULL) {
         /* Argument will be returned, but error will be saved. */
-        AddError(errors, slr->data[lineNum], ErrDit_Extra, line);
+        AddError(errors, ErrDit_Extra, line, NULL);
     }
 
     return arg;   
@@ -716,4 +783,67 @@ DynArr* ParseDataArgs(char* line, List* rawArgs, List* errors) {
     }
 
     return pargs;
+}
+
+/* Takes line with pos after ".string"  directive keyword.
+   Parses .string argument - Checks if quotation marks are correct and 
+   returns string inside them.
+   Arguments:
+    line    -- Directive line. For error messages.
+    arg     -- .string argument with quotation marks.   
+    errors  -- Errors list.    
+   Returns:
+    Parsed string argument. 
+*/
+char* ParseStringArgument(char* line, char* arg, Errors* errors) {
+    int start; /* Position of the first character inside "". */
+    int len = 0; /* Length of string inside "". */
+    int pos = 0; /* Position in arg string. */
+    int ipos = 0; /* Position inside of string between "". */
+    char* str; /* Parsed string. */
+
+    /* Checking if first character is ". */
+    if (arg[pos] != '"') {
+        AddError(errors, ErrDt_StrInvalidArg, line, arg);
+        return NULL;
+    }
+
+    /* Advancing position by 1 and marking start. */
+    pos++;
+    start = pos;
+
+    /* Searching for closing " and counting length.*/
+    while (arg[pos] != '"' && arg[pos] != '\0') {
+        pos++;
+        len++;
+    }
+    
+    /* If string wasn't closed. */
+    if (arg[pos] == '\0') {
+        AddError(errors, ErrDt_StrMissingClosing, line, arg);
+        return NULL;
+    }
+
+    /* Checking for extra text. */
+    pos++; /* Moving to closing ". */
+    if (!IsBlank(arg[pos]) && arg[pos] != '\0') {
+        AddError(errors, ErrDt_StrExtra, line, NULL);
+        return NULL;
+    }
+
+    /* Allocating result string. */
+    str = (char*)malloc(sizeof(char)*(len+1));
+    if (str == NULL) {
+        perror("Failed to allocate memory.");
+        exit(1);
+    }
+
+    /* Copying string content. */
+    for (ipos=0; ipos<len; ipos++)
+        str[ipos] = line[start+ipos];
+
+    /* Adding termination character. */
+    str[ipos] = '\0';
+
+    return str;
 }
