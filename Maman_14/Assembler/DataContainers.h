@@ -49,22 +49,11 @@ typedef struct Symbol {
    to instuction argument where label is mentioned in code. 
    Together with symbols table allows to resolve label
    arguments. */
-typedef struct LabelArgument {
+typedef struct LabelReference {
    char name[32];    /* Label name. */
    int address;      /* Instruction or data counter where label content is referenced. */
-} LabelArgument;
-
-
-/* Represents general info about an instruction
-   and its structure. */
-typedef struct InsInfo {
-   int ins;                /* Instruction number according to InstructionsEnum*/
-   int opcode;             /* Instruction opcode */
-   int funct;              /* Instruction funct code. (0 if no code)*/
-   int amodes_source;      /* [8]immideate-[4]direct-[2]d-index-[1]register*/
-   int amodes_dest;
-} InsInfo;
-
+   int origin;       /* Number of line in original source code (not expanded) where label referenced. */
+} LabelReference;
 
 /* Tells if binary value describing addressing modes
    in instruction info has specific mode.
@@ -118,7 +107,11 @@ int IsEntry(Symbol* smb);
     New Symbol structure. */ 
 Symbol* CreateSymbol(char* label, int address, int attribute);
 
-/* Add symbol to symbols table. */
-void AddSymbol(List* symbols, Symbol* new_smb, Errors* errors);
+Symbol* FindSymbolByName(List* symbols, char* label);
+
+LabelReference* CreateLabelArgument(char* label, int address, int origin);
+
+/* Checks if there is no symbols that have only .entry attribute. */
+void CheckEntries(List* symbols, Errors* errors);
 
 #endif

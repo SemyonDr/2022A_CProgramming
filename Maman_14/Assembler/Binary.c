@@ -1,5 +1,72 @@
 #include "Binary.h"
 
+/* Add symbol to symbols table. */
+void AddSymbol(List *symbols, Symbol *new_smb, Errors *errors)
+{
+    ListNode *cur = symbols->head; /* List iterator. */
+
+    /* Searching if symbol already in the table. */
+    while (cur != NULL)
+    {
+        /* Taking current iteration symbol from table. */
+        Symbol *cur_smb = (Symbol *)(cur->data);
+        /* If symbol with the same name found */
+        if (CompareStrings(cur_smb->name, new_smb->name))
+        {
+            /* If symbol has attribute .extern */
+            if (IsExtern(cur_smb))
+            {
+                /* Cannot be re-defined as entry. */
+                if (IsEntry(new_smb))
+                {
+                    AddError(errors, ErrSmb_EntryExtern, new_smb->name, NULL);
+                    return;
+                }
+                /* Cannot be re-defined as code, or data, or another extern (which will be completely identical definition)*/
+                AddError(errors, ErrSmb_NameIdentical, new_smb->name, NULL);
+                return;
+            }
+            /* If existing symbol has attributes code or data
+               new symbol can only has attribute .entry, in every other context it will re-definition. */
+            if ((IsCode(cur_smb) || IsData(cur_smb)) && !IsEntry(new_smb))
+            {
+                AddError(errors, ErrSmb_NameIdentical, new_smb->name, NULL);
+                return;
+            }
+            /* If existing symbol has attribute .entry */
+            if (IsEntry(cur_smb))
+            {
+                /* New symbol can't be. extern. */
+                if (IsExtern(new_smb))
+                {
+                    AddError(errors, ErrSmb_EntryExtern, new_smb->name, NULL);
+                    return;
+                }
+                /* New symbol can't be also .entry (identical definition). */
+                if (IsEntry(new_smb))
+                {
+                    AddError(errors, ErrSmb_NameIdentical, new_smb->name, NULL);
+                    return;
+                }
+                /* If .entry was in table and new symbol is code or data its address should overwrite .entry address. */
+                cur_smb->adress = new_smb->adress;
+            }
+            /* In any other case (combinations code||data+entry, or entry+code||data) adding
+               new attribute to existing symbol and deallocating new symbol as it is already in table. */
+            /* Adding attribute using binary OR operation. Example: if existing attribute is 1000 and new is 0001 result is 1001. */
+            cur_smb->attributes = cur_smb->attributes | new_smb->attributes;
+
+            free(new_smb);
+            return;
+        }
+        /* Advancing iterator. */
+        cur = cur->next;
+    }
+
+    /* If symbol does not exist in table yet adding it. */
+    ListAdd(symbols, new_smb);
+}
+
 /* Parses instruction line and produces Ins structure allocated on heap.
    Structure contains istruction code and structures that describe arguments.
    Catches parsing and arguments errors.
@@ -11,67 +78,72 @@
     errors  -- Errors list.
    Returns:
     Pointer to allocated instruction structure. NULL if parsing failed. */
-Ins* ParseInstructionLine(char* line, int* pos, Errors* errors) {
-    char word[MAX_STATEMENT_LEN+2]; /* Buffer for holding word from line. */
-    char* res;  /* Result of getting the word. */
-    Ins* ins;   /* Parsed instruction structure. */
-    List* rawArgs; /* Instruction arguments as strings. */
-    InsInfo insinfo;   /* Info about instruction. */
-    int num_args; /* Number of arguments required by instruction (not necessarily actually entered number of arguments).
-                     Deducted from insinfo. */
+Ins* ParseInstructionLine(char *line, int *pos, Errors *errors)
+{
+    char word[MAX_STATEMENT_LEN + 2]; /* Buffer for holding word from line. */
+    char *res;                        /* Result of getting the word. */
+    Ins *ins;                         /* Parsed instruction structure. */
+    List *rawArgs;                    /* Instruction arguments as strings. */
+    InsInfo insinfo;                  /* Info about instruction. */
+    int num_args;                     /* Number of arguments required by instruction (not necessarily actually entered number of arguments).
+                                         Deducted from insinfo. */
 
-    {/* DEBUG PRINT ****************************************************** */
-        char* line_copy = CopyStringToHeap(line);
+    { /* DEBUG PRINT ****************************************************** */
+        char *line_copy = CopyStringToHeap(line);
         RemoveLeadingBlanks(line_copy);
         ReplaceNewLine(line_copy, ' ');
         printf("DEBUG: \tBreaking down instruction line [%s]\n", line_copy);
         free(line_copy);
-    }/* DEBUG PRINT ****************************************************** */
+    } /* DEBUG PRINT ****************************************************** */
 
     /* Getting first word after label (possible instruction name). */
-    res = GetNextWord(line, &pos, word, MAX_STATEMENT_LEN+1, ",");
+    res = GetNextWord(line, pos, word, MAX_STATEMENT_LEN + 1, ",");
     /* Checking if line is not empty. */
-    if (res == NULL) {
+    if (res == NULL)
+    {
         AddError(errors, ErrStm_Empty, line, NULL);
         return NULL;
     }
 
     /* Allocating instruction structure. */
-    ins = (Ins*)malloc(sizeof(Ins));
-    if (ins == NULL) {
+    ins = (Ins *)malloc(sizeof(Ins));
+    if (ins == NULL)
+    {
         perror("Failed to allocate memory.");
         exit(1);
     }
     /* Initializing fields. */
     ins->source = NULL;
-    ins->dest = NULL;    
+    ins->dest = NULL;
 
     /* Getting instruction code. */
     ins->ins = GetInstructionType(word);
     /* If instruction is not recognized. */
-    if (ins->ins == -1) {
+    if (ins->ins == -1)
+    {
         AddError(errors, ErrStm_NotRecognized, line, word);
         FreeIns(ins);
         return NULL;
     }
 
-    {/* DEBUG PRINT ****************************************************** */
+    { /* DEBUG PRINT ****************************************************** */
         printf("DEBUG: \t\tInstruction name: %s\n", word);
         printf("DEBUG: \t\tInstruction number: %d\n", ins->ins);
-    }/* DEBUG PRINT ****************************************************** */
+    } /* DEBUG PRINT ****************************************************** */
 
     /* Getting instruction arguments as strings. */
-    rawArgs = GetRawArgs(line, &pos, errors);
+    rawArgs = GetRawArgs(line, pos, errors);
 
-    {/* DEBUG PRINT ****************************************************** */
+    { /* DEBUG PRINT ****************************************************** */
         int i = 1;
-        ListNode* cur = rawArgs->head;
-        while (cur != NULL) {
-            printf("DEBUG: \t\t\t%d: %s\n", i, cur->data);
+        ListNode *cur = rawArgs->head;
+        while (cur != NULL)
+        {
+            printf("DEBUG: \t\t\t%d: %s\n", i, (char *)(cur->data));
             cur = cur->next;
             i++;
         }
-    }/* DEBUG PRINT ****************************************************** */
+    } /* DEBUG PRINT ****************************************************** */
 
     printf("DEBUG: \t Instruction line broken down.\n");
 
@@ -87,8 +159,9 @@ Ins* ParseInstructionLine(char* line, int* pos, Errors* errors) {
 
     /* Deducting number of arguments that should be in instruction. */
     if (insinfo.amodes_dest == 0)
-        num_args = 0;   /* If there is no destination argument there is no source argument. */
-    else {
+        num_args = 0; /* If there is no destination argument there is no source argument. */
+    else
+    {
         if (insinfo.amodes_source == 0)
             num_args = 1; /* Only destination argument. */
         else
@@ -97,56 +170,64 @@ Ins* ParseInstructionLine(char* line, int* pos, Errors* errors) {
 
     /* Checking number of arguments that were extracted from the line. */
     /* Missing arguments. */
-    if (rawArgs->count < num_args) {
+    if (rawArgs->count < num_args)
+    {
         AddError(errors, ErrIns_MissingArg, line, NULL);
-        free(ins); /* Freeing instruction structure. */
+        free(ins);                /* Freeing instruction structure. */
         FreeListAndData(rawArgs); /* Freeing arguments list. */
         return NULL;
     }
-    
+
     /* Too many arguments. */
-    if (rawArgs->count > num_args) 
+    if (rawArgs->count > num_args)
         /* Too many arguments. Appropriate number of arguments will
            be parsed, but error will be saved. */
         AddError(errors, ErrIns_ExtraArg, line, NULL);
 
     /* If instruction has 2 arguments: */
-    if (num_args == 2) {
+    if (num_args == 2)
+    {
         /* Parsing arguments. */
         ins->source = ParseInsArg(rawArgs->head->data, errors);
         ins->dest = ParseInsArg(rawArgs->head->next->data, errors);
         /* Freeing raw arguments list. */
         FreeListAndData(rawArgs);
         /* If parsing arguments failed. */
-        if (ins->source == NULL || ins->dest == NULL) {
-            FreeIns(ins);  /* Removing instruction structure. */
+        if (ins->source == NULL || ins->dest == NULL)
+        {
+            FreeIns(ins); /* Removing instruction structure. */
             return NULL;
         }
         /* Checking if entered modes are available for instuction arguments. */
-        if (!HasMode(insinfo.amodes_source, ins->source->amode)) {
+        if (!HasMode(insinfo.amodes_source, ins->source->amode))
+        {
             AddError(errors, ErrIns_InvalidSrcAmode, line, NULL);
             FreeIns(ins);
             return NULL;
         }
-        if (!HasMode(insinfo.amodes_dest, ins->dest->amode)) {
+        if (!HasMode(insinfo.amodes_dest, ins->dest->amode))
+        {
             AddError(errors, ErrIns_InvalidDestAmode, line, NULL);
             FreeIns(ins);
             return NULL;
         }
     }
-    
+
     /* If instruction has 1 argument it is always a destination argument. */
-    if (num_args == 1) {
+    if (num_args == 1)
+    {
         /* Parsing arguments. */
         ins->dest = ParseInsArg(rawArgs->head->data, errors);
         FreeListAndData(rawArgs); /* Freeing string arguments. */
         /* If parsing arguments failed. */
-        if (ins->dest == NULL) {
+        if (ins->dest == NULL)
+        {
             FreeIns(ins);
             return NULL;
         }
         /* Checking if entered modes are available for destination argument. */
-        if (!HasMode(insinfo.amodes_dest, ins->dest->amode)) {
+        if (!HasMode(insinfo.amodes_dest, ins->dest->amode))
+        {
             AddError(errors, ErrIns_InvalidDestAmode, line, NULL);
             FreeIns(ins);
             return NULL;
@@ -158,23 +239,23 @@ Ins* ParseInstructionLine(char* line, int* pos, Errors* errors) {
 
 
 
-
 /* Determines type of the directive:
-   string, data, or extern/entry. 
+   string, data, or extern/entry.
    Assumes that first word of the line after label starts with '.'.
    Advances position to first blank character after directive name.
    Arguments:
-    line    -- Line containing statement. 
+    line    -- Line containing statement.
     pos     -- Position in line pointing to '.' before directive name.
    Returns:
     Directive type according to DirectivesEnum.
     Returns -1 if statement not recognized) */
-int GetDirectiveType(char* line, int* pos) {
-    char* name[MAX_STATEMENT_LEN+2]; /* Buffer for holding word from line. */
-    char* res; /* Result of getting the word. */
+int GetDirectiveType(char *line, int *pos)
+{
+    char name[MAX_STATEMENT_LEN + 2]; /* Buffer for holding word from line. */
+    char *res;                        /* Result of getting the word. */
 
     /* Reading first word (after label). */
-    res = GetNextWord(line, pos, name, MAX_STATEMENT_LEN+1, NULL);
+    res = GetNextWord(line, pos, name, MAX_STATEMENT_LEN + 1, NULL);
     /* If there is no word. */
     if (res == NULL)
         return -1;
@@ -192,35 +273,39 @@ int GetDirectiveType(char* line, int* pos) {
     return -1;
 }
 
-
 /* Writes .data line arguments to data binary segment.
    Arguments:
     dataArgs    -- Parsed numeric values of .data arguments.
     data        -- Data binary segment. */
-void DataToBinary(DynArr* dataArgs, BinarySegment* data) {
-    int i = 0; /* Iterator. */
+void DataToBinary(DynArr *dataArgs, BinarySegment *data)
+{
+    int i = 0;   /* Iterator. */
     int are = 4; /* Absolute addressing mode 100 = 4*/
 
     /* Writing .data argument values to binary data segment.*/
-    for (i=0; i < dataArgs->count; i++) {
-        int word = 0; /* Binary word. */
-        int isNegative = 0; /* Flag that shows if value is negative. */
-        int one = 1; /* Number one. */
-        int bit = 0; /* Bit iterator. */
+    for (i = 0; i < dataArgs->count; i++)
+    {
+        int word = 0;                  /* Binary word. */
+        int isNegative = 0;            /* Flag that shows if value is negative. */
+        int one = 1;                   /* Number one. */
+        int bit = 0;                   /* Bit iterator. */
         int value = dataArgs->data[i]; /* Argument value. */
         /* Truncating value to 16 bits by copying into word only 16 least significant bits of the value. */
         /* If value is negative its positive compliment found before truncating. */
-        if (value < 0) {
-            value = ((-1)*value)-1;
+        if (value < 0)
+        {
+            value = ((-1) * value);
             isNegative = 1;
         }
         /* Copying first 15 bits to word. */
-        for (bit=0; bit<15; bit++)
-            word += (one << bit) && value; /* This operation will add to word value of individual bit on position "bit". */
+        for (bit = 0; bit < 15; bit++)
+            word += (one << bit) & value; /* This operation will add to word value of individual bit on position "bit". */
         /* Setting sign bit. */
-        if (isNegative)
+        if (isNegative) {
+            word = (-1)*word;
             word += one << 16; /* Setting bit #15 */
-        /* Adding ARE qualifier. */    
+        }    
+        /* Adding ARE qualifier. */
         word += are << 16;
         /* Adding resulting word to binary segment. */
         AddBinary(data, word);
@@ -230,19 +315,21 @@ void DataToBinary(DynArr* dataArgs, BinarySegment* data) {
 /* Writes .string line argument to data binary segment.
    Arguments:
     line    -- Line containing .string directive.
-    pos     -- Position in line after word .string and before arguments. 
+    pos     -- Position in line after word .string and before arguments.
     data    -- Data binary segment.
     lineNum -- Number of line in expanded source code.
     errors  -- List of errors.
     slr     -- Source line reference.
  */
-void StringToBinary(char* arg, BinarySegment* data) {
-    int i; /* Iterator. */
+void StringToBinary(char *arg, BinarySegment *data)
+{
+    int i=0;       /* Iterator. */
     int are = 4; /* Absolute mode ARE = 100 = 4. */
-    int word; /* Binary word. */
-
-    /* Writing individual letters to data segment. */    
-    while (arg[i] != '\0') {
+    int word;    /* Binary word. */
+    printf("DEBUG: arg=%s\n", arg);
+    /* Writing individual letters to data segment. */
+    while (arg[i] != '\0')
+    {
         word = arg[i];
         word += are << 16;
         AddBinary(data, word);
@@ -250,23 +337,26 @@ void StringToBinary(char* arg, BinarySegment* data) {
     }
 
     /* Adding closing 0 word. */
-    AddBinary(data, 0);
+    word = 0 + (are<<16);
+    AddBinary(data, word);
 }
 
-
-void InstructionToBinary(Ins* ins, BinarySegment* code) {
-    InsInfo info; /* Info about instruction. */
-    int word; /* Number representing machine word. */
-    int are;  /* Number that represent adressing mode for word. */
-    int opcode; /* Number that represent opcode. */
-    int funct; /* Number that represent funct.*/
-    int src = 0;  /* Number that represent source register. */
-    int src_mode = 0; /* Number that represent source register addressing mode. */
-    int dest = 0; /* Number that represent destination register. */
+void InstructionToBinary(Ins *ins, BinarySegment *code, List* references, int lineNum)
+{
+    InsInfo info;      /* Info about instruction. */
+    int word;          /* Number representing machine word. */
+    int are;           /* Number that represent adressing mode for word. */
+    int opcode;        /* Number that represent opcode. */
+    int funct;         /* Number that represent funct.*/
+    int src = 0;       /* Number that represent source register. */
+    int src_mode = 0;  /* Number that represent source register addressing mode. */
+    int dest = 0;      /* Number that represent destination register. */
     int dest_mode = 0; /* Number that represent destination register addressing mode.*/
     /* Typical two-word instruction:
        0[are][opcode]
        0[are][funct][src][src_mode][dest][dest_mode]*/
+
+    printf("DEBUG: \tEncoding instrucion %s to binary.\n", GetInsNameByCode(ins->ins));
 
     /* Getting instruction info. */
     info = GetInstructionInfo(ins->ins);
@@ -280,7 +370,10 @@ void InstructionToBinary(Ins* ins, BinarySegment* code) {
     word = opcode + (are << 16);
     /* Writing word to code segment. */
     AddBinary(code, word);
-
+    {/* DEBUG************************************/
+        printf("DEBUG: \t\tOpcode word: ");
+        PrintBinary(word);
+    }/* DEBUG************************************/
     /* If instruction does not have arguments we are done. */
     if (info.amodes_dest == 0 && info.amodes_source == 0)
         return;
@@ -290,7 +383,10 @@ void InstructionToBinary(Ins* ins, BinarySegment* code) {
     /* ***** Encoding funct word ***** */
     /* ARE stays absolute, so are=4. */
     /* Encoding funct. */
-    funct = info.funct;
+    if (info.funct >=10 && info.funct <= 13)
+        funct = info.funct;
+    else   
+        funct = 0;
     /* If instruction has argument it at least has destination argument. */
     /* Encoding destination addressing mode. */
     dest_mode = ins->dest->amode;
@@ -302,7 +398,8 @@ void InstructionToBinary(Ins* ins, BinarySegment* code) {
         /* In indexed and register modes register is saved in value field of argument structure. */
         dest = ins->dest->val;
     /* If there is source argument */
-    if (info.amodes_source != 0) {
+    if (info.amodes_source != 0)
+    {
         /* Encoding source addressing mode. */
         src_mode = ins->source->amode;
         /* Encoding source register. */
@@ -320,43 +417,63 @@ void InstructionToBinary(Ins* ins, BinarySegment* code) {
     word += are << 16;
     /* Writing word to code segment. */
     AddBinary(code, word);
-
+    {/* DEBUG************************************/
+        printf("DEBUG: \t\tFunct word: ");
+        PrintBinary(word);
+    }/* DEBUG************************************/
     /* ***** Encoding data words ***** */
+    /* If function has source argument. */
+    if (info.amodes_source != 0) {
+        /* If source mode is immediate writing value word. */
+        if (src_mode == am_immediate) {
+            word = ins->source->val + (are << 16);
+            AddBinary(code, word);
+        }
+        /* If source mode is direct, or indexed modes leave 2 blank words to resolve data+offset later. */
+        if (src_mode == am_direct || src_mode == am_index) {
+            /* Adding label to list of unresolved references. */
+            LabelReference* ref = CreateLabelArgument(ins->source->label, NextSegmentAddress(code), lineNum);
+            ListAdd(references, ref);
+            /* Adding binary words. */
+            AddBinary(code, 0);
+            AddBinary(code, 0);
+        }
+    }
+    printf("DEBUG: Encoded src data word.\n");
+
     /* If destination is in immedeate mode writing value word. */
-    if (dest_mode == am_immediate) {
+    if (dest_mode == am_immediate)
+    {
         /* ARE is still absolute */
         word = ins->dest->val + (are << 16);
         AddBinary(code, word);
     }
     /* If destination is in direct, or indexed modes leave 2 blank words to resolve base+offset later. */
-    if (dest_mode == am_direct || dest_mode == am_index) {
+    if (dest_mode == am_direct || dest_mode == am_index)
+    {
+        /* Adding label to list of unresolved references. */
+        LabelReference* ref = CreateLabelArgument(ins->dest->label, NextSegmentAddress(code), lineNum);
+        ListAdd(references, ref);
+        /* Adding binary words. */
         AddBinary(code, 0);
         AddBinary(code, 0);
     }
-    /* If source mode is immediate writing value word. */
-    if (src_mode == am_immediate) {
-        word = ins->source->val + (are << 16);
-        AddBinary(code, word);
-    }
-    /* If source mode is direct, or indexed modes leave 2 blank words to resolve data+offset later. */
-    if (src_mode == am_direct || dest_mode == am_index) {
-        AddBinary(code, 0);
-        AddBinary(code, 0);
-    }
+    printf("DEBUG: Encoded dest data word.\n");
 }
 
 /*  */
-Symbol* ProcessStatement(char* line, List* unresolved, BinarySegment* code, BinarySegment* data, Errors* errors) {
-    int pos = 0; /* Position in line. */
-    char label[MAX_STATEMENT_LEN+2];  /* Buffer for holding label. */
-    int lptr; /* Variable for holding result of getting the label.*/
-    Symbol* smb; /* Structure that holds info about line label for symbols table. */    
+Symbol* ProcessStatement(char *line, List *unresolved, BinarySegment *code, BinarySegment *data, Errors *errors)
+{
+    int pos = 0;                       /* Position in line. */
+    char label[MAX_STATEMENT_LEN + 2]; /* Buffer for holding label. */
+    char *lptr;                        /* Variable for holding result of getting the label.*/
 
     /* Trying to get the label. */
-    lptr = TryGetLabel(line, &pos, label, MAX_STATEMENT_LEN+1);
+    lptr = TryGetLabel(line, &pos, label, MAX_STATEMENT_LEN + 1);
 
     /* Checking length of a label. */
-    if (lptr != NULL && StringLen(label)>MAX_LABEL_LEN) {
+    if (lptr != NULL && StringLen(label) > MAX_LABEL_LEN)
+    {
         /* If label is too long pretending it does not exist and adding error. */
         lptr = NULL;
         AddError(errors, ErrSmb_TooLong, line, label);
@@ -366,13 +483,15 @@ Symbol* ProcessStatement(char* line, List* unresolved, BinarySegment* code, Bina
     SkipBlank(line, &pos);
 
     /* If command starts with a dot checking if statement is a directive. */
-    if (line[pos] == '.') {
+    if (line[pos] == '.')
+    {
         int dir_type; /* Variable for holding directive type. */
         /* Trying to get directive type. pos will be advanced to first char after the name.*/
         dir_type = GetDirectiveType(line, &pos);
 
         /* Checking if directive is recognized. */
-        if (dir_type == -1) {
+        if (dir_type == -1)
+        {
             AddError(errors, ErrDir_NotRecognized, line, NULL);
             /* Instruction name cannot start with a dot, so if directive is not recognized
                line is not an instruction either and cannot be parsed.*/
@@ -380,21 +499,28 @@ Symbol* ProcessStatement(char* line, List* unresolved, BinarySegment* code, Bina
         }
 
         /* If directive is .data. */
-        if (dir_type == dir_data) {
-            List* raw_data_args; /* Raw .data arguments (strings). */
-            DynArr* data_args; /* parsed .data arguments (values). */
+        if (dir_type == dir_data)
+        {
+            List *raw_data_args;                         /* Raw .data arguments (strings). */
+            DynArr *data_args;                           /* parsed .data arguments (values). */
             int data_counter = NextSegmentAddress(data); /* Adress of this data block. */
 
             /* Getting raw arguments. */
             raw_data_args = GetRawArgs(line, &pos, errors);
             /* Checking if arguments are present. */
-            if (data_args->count == 0) {
+            if (raw_data_args->count == 0)
+            {
                 AddError(errors, ErrDt_DtNoArgument, line, NULL);
-                FreeListAndData(data_args);
+                FreeListAndData(raw_data_args);
                 return NULL;
             }
             /* Parsing arguments. */
             data_args = ParseDataArgs(line, raw_data_args, errors);
+            /* Checking if parsing failed. */
+            if (data_args == NULL) {
+                FreeListAndData(raw_data_args);
+                return NULL;
+            }
             /* Adding .data arguments to data segment. */
             DataToBinary(data_args, data);
             /* If line opened with label returning the symbol. */
@@ -405,26 +531,30 @@ Symbol* ProcessStatement(char* line, List* unresolved, BinarySegment* code, Bina
         }
 
         /* If directive is .string. */
-        if (dir_type == dir_string) {
-            List* raw_string_args; /* List of raw (string) arguments for .string.*/
-            char* arg; /* Parsed argument (content of ""). */
+        if (dir_type == dir_string)
+        {
+            List *raw_string_args;                       /* List of raw (string) arguments for .string.*/
+            char *arg;                                   /* Parsed argument (content of ""). */
             int data_counter = NextSegmentAddress(data); /* Adress of this data block. */
             /* Getting raw arguments of .string directive. */
-            List* raw_string_args = GetRawArgs(line, &pos, errors);
+            raw_string_args = GetRawArgs(line, &pos, errors);
             /* Checking if arguments are present. */
-            if (raw_string_args->count == 0) {
+            if (raw_string_args->count == 0)
+            {
                 AddError(errors, ErrDt_StrNoArgument, line, NULL);
                 FreeListAndData(raw_string_args);
                 return NULL;
             }
             /* Checking if more that one argument given. */
-            if (raw_string_args->count > 1) {
+            if (raw_string_args->count > 1)
+            {
                 AddError(errors, ErrDt_StrExtra, line, NULL);
             }
             /* Parsing the argument. */
-            arg = ParseStringArgument(raw_string_args->head->data, errors);
+            arg = ParseStringArgument(line, raw_string_args->head->data, errors);
             /* If parsing failed. */
-            if (arg == NULL) {
+            if (arg == NULL)
+            {
                 FreeListAndData(raw_string_args);
                 free(arg);
                 return NULL;
@@ -443,29 +573,47 @@ Symbol* ProcessStatement(char* line, List* unresolved, BinarySegment* code, Bina
         }
 
         /* If directive is .entry or .extern*/
-        if (dir_type == dir_entry || dir_type == dir_extern) {
-            char arg[MAX_LABEL_LEN+1]; /* Buffer for holding directive argument. */
-            char* res;  /* Result of taking directive argument. */
-            res = GetSymbolDirectiveArgument(line, &pos, arg, lineNum, errors, slr);
+        if (dir_type == dir_entry || dir_type == dir_extern)
+        {
+            char arg[MAX_LABEL_LEN + 1]; /* Buffer for holding directive argument. */
+            char *res;                   /* Result of taking directive argument. */
+            res = GetSymbolDirectiveArgument(line, &pos, arg, errors);
             /* Not succeeded in taking the argument. */
             if (res == NULL)
-                return;
+                return NULL;
             /* If line opened with a label print warning and ignore it. */
-            if (lptr != NULL) {
-                char* linecp = CopyStringToHeap(line); /* Making line copy. */
-                RemoveLeadingBlanks(linecp);    /* Preparing line copy for printing. */
+            if (lptr != NULL)
+            {
+                char *linecp = CopyStringToHeap(line); /* Making line copy. */
+                RemoveLeadingBlanks(linecp);           /* Preparing line copy for printing. */
                 ReplaceNewLine(linecp, '\0');
-                printf("Warning: Line %d: \"%s\" <- Label before .entry or .extern will be ignored.\n", slr->data[lineNum], linecp);
+                printf("Warning: Line %d: \"%s\" <- Label before .entry or .extern will be ignored.\n", errors->cur_line_num, linecp);
                 free(linecp);
             }
             /* Creating appropriate symbol structure. */
             if (dir_type == dir_entry)
-                smb = CreateSymbol(arg, 0, att_entry);
+                return CreateSymbol(arg, 0, att_entry);
             else /* dir_type == dir_extern*/
-                smb = CreateSymbol(arg, 0, att_extern);
-            /* Adding symbol to symbols table. */
-            AddSymbol(symbols, smb, lineNum, errors, slr);
-            return;
+                return CreateSymbol(arg, 0, att_extern);
         }
     } /* If name starts with a dot section end. */
+
+    /* If command name doesn't start with a dot it is considered to be an instruction name.
+       Instruction parsing function is called then. */
+    {
+        Ins *ins;                                   /* Pointer to parsed instruction structure. */
+        int ins_counter = NextSegmentAddress(code); /* Saving address where this instructions block starts. */
+        /* Trying to parse the instruction. */
+        ins = ParseInstructionLine(line, &pos, errors);
+        /* Checking if instruction parsing succeeded. */
+        if (ins == NULL)
+            return NULL;
+        /* Writing parsed structure to code binary segment. */
+        InstructionToBinary(ins, code, unresolved, (errors->slr->data)[errors->cur_line_num]);
+        /* If label existed creating the symbol. */
+        if (lptr != NULL)
+            return CreateSymbol(label, ins_counter, att_code);
+        else
+            return NULL;
+    }
 }

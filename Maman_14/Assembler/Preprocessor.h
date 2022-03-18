@@ -3,8 +3,8 @@
 
 #include <stdio.h>
 #include "Definitions.h"
-#include "DataContainers.h"
 #include "Data.h"
+#include "DataContainers.h"
 #include "Errors.h"
 #include "Parsing.h"
 
@@ -111,7 +111,7 @@ int RegisterMacroInfo(FILE** source, List* macros, char* defLine, int defLineNum
     callLineNum -- Number of a call line in source file.
     macros      -- List of registered macros.
     errors      -- List of errors. */
-void ExpandMacro(FILE** source, FILE** target, long srcPos, char* callLine, int callLineNum, List* macros, List* errors);
+void ExpandMacro(FILE** source, FILE** target, long srcPos, char* callLine, int callLineNum, List* macros, Errors* errors);
 
 /* Frees memory occupied by macros list.
    Removes macro info objects, 

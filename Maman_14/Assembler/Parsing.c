@@ -16,17 +16,17 @@ int IsDigit(char c) {
 int IsNumber(char* s) {
     int pos = 0;
 
+    /* Checking for empty string. */
+    if (s[pos] == '\0')
+        return 0;
+
     /* Checking for leading sign. */
-    if (s[pos] == '+' || s[pos] == '-') {
-        if (s[pos] == '\0')
-            return 0;
-        else
-            pos++;
-    }
+    if (s[pos] == '+' || s[pos] == '-')
+        pos++;
 
     /* Checking rest of the number. */
     while (s[pos] != '\0') {
-        if (s[pos] <= 48 || s[pos] >=57)
+        if (s[pos] < 48 || s[pos] > 57)
             return 0;
         pos++;
     }
@@ -763,12 +763,12 @@ char* GetSymbolDirectiveArgument(char* line, int* pos, char arg[MAX_LABEL_LEN+1]
    Returns:
     Dynamic array containing integer values of corresponding arguments.
     NULL if parsing failed. */
-DynArr* ParseDataArgs(char* line, List* rawArgs, List* errors) {
+DynArr* ParseDataArgs(char* line, List* rawArgs, Errors* errors) {
     DynArr* pargs; /* Array of parsed arguments values. */
     ListNode* cur; /* List iterator. */
 
     /* Creating result array. */
-    pargs = CreateDArrayInt(8);
+    pargs = CreateDynArr(8);
 
     /* If no arguments in the list. */
     if (rawArgs->count == 0) {
@@ -781,8 +781,12 @@ DynArr* ParseDataArgs(char* line, List* rawArgs, List* errors) {
     cur = rawArgs->head; /* Initializing iterator. */
     while (cur != NULL) {
         /* Checking if raw argument is a number and parsing it. */
-        if (IsNumber(cur->data))
-            AddDynArr(pargs, ParseNumber(cur->data));
+        if (IsNumber(cur->data)) {
+            /* Parsing argument value. */
+            int pnum = ParseNumber(cur->data); 
+            printf("DEBUG: Parsed number %d\n", pnum);
+            AddDynArr(pargs, pnum);
+        }
         else {
             /* Invalid argument encountered. */
             AddError(errors, ErrDt_DtInvalidArg, line, cur->data);
@@ -812,6 +816,7 @@ char* ParseStringArgument(char* line, char* arg, Errors* errors) {
     int ipos = 0; /* Position inside of string between "". */
     char* str; /* Parsed string. */
 
+
     /* Checking if first character is ". */
     if (arg[pos] != '"') {
         AddError(errors, ErrDt_StrInvalidArg, line, arg);
@@ -827,7 +832,7 @@ char* ParseStringArgument(char* line, char* arg, Errors* errors) {
         pos++;
         len++;
     }
-    
+
     /* If string wasn't closed. */
     if (arg[pos] == '\0') {
         AddError(errors, ErrDt_StrMissingClosing, line, arg);
@@ -836,7 +841,7 @@ char* ParseStringArgument(char* line, char* arg, Errors* errors) {
 
     /* Checking for extra text. */
     pos++; /* Moving to closing ". */
-    if (!IsBlank(arg[pos]) && arg[pos] != '\0') {
+    if (!IsBlankChar(arg[pos]) && arg[pos] != '\0') {
         AddError(errors, ErrDt_StrExtra, line, NULL);
         return NULL;
     }
@@ -850,8 +855,8 @@ char* ParseStringArgument(char* line, char* arg, Errors* errors) {
 
     /* Copying string content. */
     for (ipos=0; ipos<len; ipos++)
-        str[ipos] = line[start+ipos];
-
+        str[ipos] = arg[start+ipos];
+    
     /* Adding termination character. */
     str[ipos] = '\0';
 

@@ -2,19 +2,22 @@
     #define BINARY_H
 
 #include <stdio.h>
-#include "Definitions.h"
-#include "DataContainers.h"
 #include "MyString.h"
+#include "Definitions.h"
 #include "Data.h"
-#include "Symbols.h"
+#include "DataContainers.h"
 #include "Errors.h"
 #include "Parsing.h"
+#include "MyDebug.h"
 
 typedef struct ParsedCode {
     List* symbols;          /* Symbols table. */
     BinarySegment* code;
     BinarySegment* data;
 } ParsedCode;
+
+/* Add symbol to symbols table. */
+void AddSymbol(List* symbols, Symbol* new_smb, Errors* errors);
 
 /* Parses instruction line and produces Ins structure allocated on heap.
    Structure contains istruction code and structures that describe arguments.
@@ -58,6 +61,8 @@ void DataToBinary(DynArr* dataArgs, BinarySegment* data);
  */
 void StringToBinary(char* arg, BinarySegment* data);
 
-void InstructionToBinary(Ins* ins, BinarySegment* code);
+void InstructionToBinary(Ins *ins, BinarySegment *code, List* references, int lineNum);
+
+Symbol* ProcessStatement(char *line, List *unresolved, BinarySegment *code, BinarySegment *data, Errors *errors);
 
 #endif

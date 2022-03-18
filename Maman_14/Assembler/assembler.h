@@ -3,11 +3,12 @@
 
 #include <stdio.h>
 #include "Definitions.h"
-#include "DataContainers.h"
-#include "Preprocessor.h"
-#include "Errors.h"
 #include "Data.h"
+#include "DataContainers.h"
+#include "Errors.h"
+#include "Parsing.h"
 #include "Preprocessor.h"
 #include "Binary.h"
+#include "MyDebug.h"
 
 #endif

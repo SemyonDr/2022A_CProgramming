@@ -1,5 +1,3 @@
-#include <stdlib.h>
-#include <stdio.h>
 #include "Data.h"
 
 /* Creates new linked list.
@@ -133,7 +131,7 @@ void ExpandDynArr(DynArr* arr) {
 void AddDynArr(DynArr* arr, int data) {
     /* Checking if array needs expansion. */
     if (arr->count == arr->size)
-        ExpandDArrayInt(arr);
+        ExpandDynArr(arr);
     
     /* Writing data */
     (arr->data)[arr->count] = data;

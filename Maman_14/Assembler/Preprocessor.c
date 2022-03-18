@@ -411,7 +411,7 @@ int RegisterMacroInfo(FILE** source, List* macros, char* defLine, int defLineNum
     Checks if there were text after macro name in call line. Text will be ignored and macro expanded,
     but error will be registered.
     Assumes that provided arguments are correct and does not check them. */
-void ExpandMacro(FILE** source, FILE** target, long srcPos, char* callLine, int callLineNum, List* macros, List* errors) {
+void ExpandMacro(FILE** source, FILE** target, long srcPos, char* callLine, int callLineNum, List* macros, Errors* errors) {
     int i; /* Line terator */
     MacroInfo* minfo; /* Variable for storing found macro info. */
     int pos =0; /* Position in line. */

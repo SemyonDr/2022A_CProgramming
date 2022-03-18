@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include "main.h"
 
 typedef struct CRD {
     int x;

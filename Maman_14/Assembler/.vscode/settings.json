@@ -2,6 +2,13 @@
     "files.associations": {
         "preprocessor.h": "c",
         "parsing.h": "c",
-        "errors.h": "c"
+        "errors.h": "c",
+        "definitions.h": "c",
+        "data.h": "c",
+        "debug.h": "c",
+        "stdlib.h": "c",
+        "datacontainers.h": "c",
+        "binary.h": "c",
+        "mydebug.h": "c"
     }
 }

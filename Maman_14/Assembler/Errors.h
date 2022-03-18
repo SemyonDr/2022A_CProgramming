@@ -58,8 +58,9 @@ enum ErrorsEnum {
     /* Symbol errors. */
     ErrSmb_TooLong,              /* Label is too long*/
     ErrSmb_NameIdentical,        /* Found symbol that is already defined. */   
-    ErrSmb_EntryExtern          /* Symbol declared both as entry and extern. */
-
+    ErrSmb_EntryExtern,          /* Symbol declared both as entry and extern. */
+    ErrSmb_NotFound,             /* Label argument not found in symbols table. */
+    ErrSmb_EntryUndefined        /* */
 
 
 };

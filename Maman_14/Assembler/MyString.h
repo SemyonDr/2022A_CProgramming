@@ -3,7 +3,6 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include "Definitions.h"
 
 /* Returns length of null-terminated string s.
    Argumetns:

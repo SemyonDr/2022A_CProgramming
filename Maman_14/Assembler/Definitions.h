@@ -1,8 +1,6 @@
 #ifndef DEFINITIONS_H
     #define DEFINITIONS_H
 
-#include "DataContainers.h"
-
 /* Maximum length of a statement in symbols in assembly
 source file not including end of the line \n symbol*/
 #define MAX_STATEMENT_LEN 80
@@ -40,6 +38,16 @@ enum AdressingModesEnum {
    am_index,      /* Index */
    am_rdirect     /* Register direct */
 };
+
+/* Represents general info about an instruction
+   and its structure. */
+typedef struct InsInfo {
+   int ins;                /* Instruction number according to InstructionsEnum*/
+   int opcode;             /* Instruction opcode */
+   int funct;              /* Instruction funct code. (0 if no code)*/
+   int amodes_source;      /* [8]immideate-[4]direct-[2]d-index-[1]register*/
+   int amodes_dest;
+} InsInfo;
 
 /* Return info about given instruction.
    Argument:

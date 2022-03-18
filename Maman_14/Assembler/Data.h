@@ -1,7 +1,8 @@
 #ifndef DATA_H
     #define DATA_H
 
-#include "Definitions.h"
+#include <stdlib.h>
+#include <stdio.h>
 
 /* Defines node of linked list.
    Data is stored as a pointer.

@@ -41,7 +41,7 @@ Errors* CreateErrors() {
     AddDynArr(errors->slr, -1);
 
     /* Setting other fields. */
-    errors->cur_line_num;
+    errors->cur_line_num = 0;
     errors->count = 0;
     errors->capacity = ERR_STEP;
 
@@ -78,8 +78,9 @@ void AddErrorManual(Errors* errors, int lineNum, int errCode, char* source, char
     /* Checking if array should be expanded. */
     if (errors->count == errors->capacity) {
         Error* res; /* Result of array reallocation. */
+        int new_cap = (errors->capacity) + ERR_STEP; /* New errors array capacity */
         /* Reallocating array. */
-        res = (Error*)realloc(errors->list, sizeof(Error)*(errors->capacity + ERR_STEP));
+        res = (Error*)realloc(errors->list, sizeof(Error)*new_cap);
         if (res == NULL) {
             perror("Failed to allocate memory.");
             exit(1);
@@ -87,6 +88,8 @@ void AddErrorManual(Errors* errors, int lineNum, int errCode, char* source, char
         if (res != errors->list) {
             errors->list = res;
         }
+        /* Setting new capacity. */
+        errors->capacity = new_cap;
     }
 
     /* Getting pointer to new error for shortening names in code. */
@@ -104,7 +107,7 @@ void AddErrorManual(Errors* errors, int lineNum, int errCode, char* source, char
             spos++;
         while (source[spos] != '\0' && spos < MAX_STATEMENT_LEN+1) {
             if (source[spos] != '\n')
-                new->source[cpos] == source[spos];
+                new->source[cpos] = source[spos];
             cpos++;
             spos++;
         }
@@ -129,6 +132,9 @@ void AddErrorManual(Errors* errors, int lineNum, int errCode, char* source, char
     }
     else
         new->info[0] = '\0';
+
+    /* Increasing errors count */
+    (errors->count)++;    
 }
 
 
@@ -139,8 +145,9 @@ void AddErrorManual(Errors* errors, int lineNum, int errCode, char* source, char
     Uses switch to print error description 
     according to error code. */
 void PrintError(Error* er) {
-    /* Printing line number */
-    printf(" Line %d: ", er->source_line_num);
+    /* Printing line number. If line number is 0, or negative it will not be printed. */
+    if (er->source_line_num > 0)
+        printf(" Line %d: ", er->source_line_num);
     /* Printing error source */
     if (er->source[0] != '\0')
         printf("\"%s\" <- ", er->source);
@@ -284,7 +291,9 @@ void PrintError(Error* er) {
     case ErrDt_DtInvalidArg:
         if (er->info[0] != '\0')
             printf("[%s] - Expected number argument", er->info);
-        printf("Expected number argument.");
+        else    
+            printf("Expected number argument.");
+        break;
 
     case ErrDir_NotRecognized:
         printf("Directive not recognized.");
@@ -304,6 +313,14 @@ void PrintError(Error* er) {
 
     case ErrSmb_EntryExtern:
         printf("Label cannot be defined as .entry and .extern simultaniously.");
+        break;
+
+    case ErrSmb_NotFound:
+        printf("Failed to resolve symbol argument. Label not found");
+        break;
+
+    case ErrSmb_EntryUndefined:
+        printf("Symbol marked as entry does not have definition.");
         break;
 
     default:

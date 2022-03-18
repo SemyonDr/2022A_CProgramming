@@ -26,7 +26,7 @@ void FreeIns(Ins* ins) {
 int HasMode(int amodes, int adressingMode) {
     /* This function explained by example. */
     /* For example adressing mode is 2 and amodes are 0110=6*/
-    int i; /* Iterator. */
+
     int mode_bin = 1; /* Binary representation of a mode. Starts as 0001 */
     mode_bin = mode_bin << adressingMode; /* Making binary shift. Now mode_bin is 0100. */
     /* Checking if mode is in amodes. */
@@ -107,61 +107,52 @@ Symbol* CreateSymbol(char* label, int address, int attribute) {
     return smb;
 }
 
+Symbol* FindSymbolByName(List* symbols, char* label) {
+   ListNode* cur = symbols->head; /* Symbols iterator. */
+   /* Iterating trough symbols list. */
+   while (cur != NULL) {
+      Symbol* cur_smb = cur->data;
+      /* Comparing symbol name. */
+      if (CompareStrings(label,cur_smb->name)) {
+         return cur_smb;
+      }
+      cur = cur->next;
+   }
+   /* If nothing found. */
+   return NULL;
+}
 
-/* Add symbol to symbols table. */
-void AddSymbol(List* symbols, Symbol* new_smb, Errors* errors) {
-    ListNode* cur = symbols->head; /* List iterator. */
+LabelReference* CreateLabelArgument(char* label, int address, int origin) {
+   int i = 0; /* Iterator. */
+   LabelReference* la;
+   /* Allocating the structure. */
+   la = (LabelReference*)malloc(sizeof(LabelReference));
+   if (la == NULL) {
+      perror("Failed to allocate memory.");
+      exit(1);
+   }
+   /* Setting address and origin. */
+   la->address = address;
+   la->origin = origin;
+   /* Copying label name. */
+   while (label[i] != '\0') {
+      la->name[i] = label[i];
+      i++;
+   }
+   la->name[i] = '\0';
+   return la;
+}
 
-    /* Searching if symbol already in the table. */
-    while (cur != NULL) {
-        /* Taking current iteration symbol from table. */
-        Symbol* cur_smb = (Symbol*)(cur->data); 
-        /* If symbol with the same name found */
-        if (CompareStrings(cur_smb->name, new_smb->name)) {
-            /* If symbol has attribute .extern */
-            if (IsExtern(cur_smb)) {
-                /* Cannot be re-defined as entry. */
-                if (IsEntry(new_smb)) {
-                    AddError(errors, ErrSmb_EntryExtern, new_smb->name, NULL);
-                    return;
-                }
-                /* Cannot be re-defined as code, or data, or another extern (which will be completely identical definition)*/
-                AddError(errors, ErrSmb_NameIdentical, new_smb->name, NULL);
-                return;
-            }
-            /* If existing symbol has attributes code or data
-               new symbol can only has attribute .entry, in every other context it will re-definition. */
-            if ((IsCode(cur_smb) || IsData(cur_smb)) && !IsEntry(new_smb)) {
-                AddError(errors, ErrSmb_NameIdentical, new_smb->name, NULL);
-                return;
-            }
-            /* If existing symbol has attribute .entry */
-            if (IsEntry(cur_smb)) {
-                /* New symbol can't be. extern. */
-                if (IsExtern(new_smb)) {
-                    AddError(errors, ErrSmb_EntryExtern, new_smb->name, NULL);
-                    return;
-                }
-                /* New symbol can't be also .entry (identical definition). */
-                if (IsEntry(new_smb)) {
-                    AddError(errors, ErrSmb_NameIdentical, new_smb->name, NULL);
-                    return;
-                }
-                /* If .entry was in table and new symbol is code or data its address should overwrite .entry address. */
-                cur_smb->adress = new_smb->adress;
-            }
-            /* In any other case (combinations code||data+entry, or entry+code||data) adding 
-               new attribute to existing symbol and deallocating new symbol as it is already in table. */ 
-            /* Adding attribute using binary OR operation. Example: if existing attribute is 1000 and new is 0001 result is 1001. */
-            cur_smb->attributes = cur_smb->attributes | new_smb->attributes; 
-            
-            free(new_smb);
-            return;
-        }
-        /* Advancing iterator. */
-        cur = cur->next;
-    }
 
-    /* If symbol does not exist in table yet adding it. */
-    ListAdd(symbols, new_smb);
+void CheckEntries(List* symbols, Errors* errors) {
+   ListNode* cur;
+   cur = symbols->head;
+   while (cur != NULL) {
+      Symbol* smb = cur->data;
+      if (IsEntry(smb)) {
+         if (!IsCode(smb) && !IsData(smb))
+            AddErrorManual(errors, 0, ErrSmb_EntryUndefined, smb->name, NULL);
+      }
+      cur = cur->next;
+   }
 }

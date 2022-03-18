@@ -4,10 +4,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "Definitions.h"
-#include "DataContainers.h"
-#include "Data.h"
 #include "MyString.h"
+#include "Data.h"
+#include "DataContainers.h"
 #include "Errors.h"
+#include "MyDebug.h"
 
 /* Returns 1 if character c is a number
    and 0 if it is not. */
@@ -202,5 +203,17 @@ char* GetSymbolDirectiveArgument(char* line, int* pos, char arg[MAX_LABEL_LEN+1]
    Returns:
     Dynamic array containing integer values of corresponding arguments.
     NULL if parsing failed. */
-DynArr* ParseDataArgs(char* line, List* rawArgs, List* errors);
+DynArr* ParseDataArgs(char* line, List* rawArgs, Errors* errors);
+
+/* Takes line with pos after ".string"  directive keyword.
+   Parses .string argument - Checks if quotation marks are correct and 
+   returns string inside them.
+   Arguments:
+    line    -- Directive line. For error messages.
+    arg     -- .string argument with quotation marks.   
+    errors  -- Errors list.    
+   Returns:
+    Parsed string argument. 
+*/
+char* ParseStringArgument(char* line, char* arg, Errors* errors);
 #endif

@@ -11,24 +11,31 @@ CFLAGS = -Wall -ansi -pedantic
 # Executes commands on specified targets
 all: compile
 
-# Compiles Data.c file into object
+def:
+	$(CC) Definitions.c $(CFLAGS) -c -o ./bin/object/def.o
+
+string:
+	$(CC) MyString.c $(CFLAGS) -c -o ./bin/object/mystring.o
+
 data:
 	$(CC) Data.c $(CFLAGS) -c -o ./bin/object/data.o
 
-parsing:
-	$(CC) Parsing.c $(CFLAGS) -c -o ./bin/object/parsing.o
-
-file:
-	$(CC) File.c $(CFLAGS) -c -o ./bin/object/file.o
+containers:
+	$(CC) DataContainers.c $(CFLAGS) -c -o ./bin/object/containers.o
 
 err:
 	$(CC) Errors.c $(CFLAGS) -c -o ./bin/object/errors.o
 
+parsing:
+	$(CC) Parsing.c $(CFLAGS) -c -o ./bin/object/parsing.o
+
 pp:
 	$(CC) Preprocessor.c $(CFLAGS) -c -o ./bin/object/preprocessor.o
 
-string:
-	$(CC) MyString.c $(CFLAGS) -c -o ./bin/object/mystring.o
+# Compiles Data.c file into object
+binary:
+	$(CC) Binary.c $(CFLAGS) -c -o ./bin/object/binary.o
+
 
 
 # Compile executable
@@ -37,4 +44,7 @@ string:
 # con.c -- file to be compiled
 # -o ./bin/assembler -- resulting executable
 compile:
-	$(CC) Definitions.h Data.c MyString.c Parsing.c Errors.c Preprocessor.c Binary.c assembler.c $(CFLAGS) -o ./bin/assembler
+	$(CC) Definitions.c MyString.c Data.c DataContainers.c Errors.c Parsing.c Preprocessor.c  Binary.c assembler.c $(CFLAGS) -o ./bin/assembler
+
+debug:
+	$(CC) Definitions.c MyString.c Data.c DataContainers.c Errors.c Parsing.c MyDebug.c Preprocessor.c  Binary.c assembler.c $(CFLAGS) -o ./bin/assembler_dbg
