@@ -7,8 +7,8 @@
 #include "MyString.h"
 #include "Data.h"
 #include "DataContainers.h"
+#include "Symbols.h"
 #include "Errors.h"
-#include "MyDebug.h"
 
 /* Returns 1 if character c is a number
    and 0 if it is not. */
@@ -213,7 +213,20 @@ DynArr* ParseDataArgs(char* line, List* rawArgs, Errors* errors);
     arg     -- .string argument with quotation marks.   
     errors  -- Errors list.    
    Returns:
-    Parsed string argument. 
-*/
+    Parsed string argument.  */
 char* ParseStringArgument(char* line, char* arg, Errors* errors);
+
+/* Parses instruction line and produces Ins structure allocated on heap.
+   Structure contains istruction code and structures that describe arguments.
+   Catches parsing and arguments errors.
+   Moves position to end of the line.
+   Assumes that provided arguments are correct and does not check them.
+   Arguments:
+    line    -- Instruction line from source code.
+    pos     -- Position in line after label and before instruction name.
+    errors  -- Errors list.
+   Returns:
+    Pointer to allocated instruction structure. NULL if parsing failed. */
+Ins* ParseInstructionLine(char* line, int* pos, Errors* errors);
+
 #endif

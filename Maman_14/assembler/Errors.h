@@ -45,7 +45,7 @@ enum ErrorsEnum {
     ErrIns_InvalidSrcAmode,      /* Source adressing mode does not exists for instucrion. */
     ErrIns_InvalidDestAmode,     /* Destination adressing mode does not exists for instruction. */ 
     /* String argument errors. */
-    ErrDt_StrNoArgument,         /* No argument provided. */
+    ErrDt_StrNoArgument,         /* No argument provided for string. */
     ErrDt_StrInvalidArg,         /* .string argument is not a string. */
     ErrDt_StrMissingClosing,     /* Closing " is missing in string. */
     ErrDt_StrExtra,              /* Extra text after string argument. */
@@ -60,9 +60,7 @@ enum ErrorsEnum {
     ErrSmb_NameIdentical,        /* Found symbol that is already defined. */   
     ErrSmb_EntryExtern,          /* Symbol declared both as entry and extern. */
     ErrSmb_NotFound,             /* Label argument not found in symbols table. */
-    ErrSmb_EntryUndefined        /* */
-
-
+    ErrSmb_EntryUndefined        /* Symbol marked as entry but no definition (code or data) provided. */
 };
 
 
@@ -128,6 +126,13 @@ void AddError(Errors* errors, int errCode, char* source, char* info);
     info        -- Optional additional info (can be NULL).*/
 void AddErrorManual(Errors* errors, int lineNum, int errCode, char* source, char* info);
 
+/* Sorts errors list by number of error source line.
+   Uses insertion sort algorithm.
+   Arguments:
+    errors  -- Errors list.
+    */
+void SortErrors(Errors* errors);
+
 /* Prints individual error message to stdout.
    Arguments:
     er  -- Error to print. */
@@ -139,5 +144,11 @@ void PrintError(Error* er);
    Arguments:
     errors  -- errors list. */
 void PrintErrorsList(Errors* errors);
+
+/* Frees memory occupied by errors list.
+   Deallocates structures used by errors and errors structure itself.
+   Arguments:
+    errors  -- Errors list.*/
+void FreeErrors(Errors* errors);
 
 #endif

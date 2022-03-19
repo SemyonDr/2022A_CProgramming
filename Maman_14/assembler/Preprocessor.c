@@ -26,6 +26,7 @@ MacroInfo* FindMacroByName(List* macros, char* name) {
 }
 
 
+
 /* Checks if given line consists of blank characters (' ', '\t', '\n').
    Arguments:
     line    -- Line to check (null-terminated).
@@ -42,6 +43,7 @@ int IsLineBlank(char* line) {
 }
 
 
+
 /* Checks if given line is a comment (First non-blank character is ';').
    Arguments:
     line    -- Line to check (null-terminated).
@@ -56,6 +58,7 @@ int IsLineComment(char* line) {
     else
         return 0;
 }
+
 
 
 /* Checks if given line is a macro declaration.
@@ -87,6 +90,7 @@ int IsLineMacroDef(char* line) {
 }
 
 
+
 /* Checks if line is an end line of macro definition.
    (First word of line is "endm").
    Arguments:
@@ -114,6 +118,7 @@ int IsLineMacroDefEnd(char* line) {
 }
 
 
+
 /* Checks if given line is a macro call (macro name).
    Arguments:
     line    -- Source file line (terminated).
@@ -139,6 +144,7 @@ int IsLineMacroCall(char* line, List* macros) {
     else
         return 0;
 }
+
 
 
 /* Gets macro name from macro definition line.
@@ -169,7 +175,7 @@ char* GetMacroName(char* line, int defLineNum, Errors* errors) {
        +2 for temination and new line characters. */
     char word[MAX_STATEMENT_LEN + 2];
     char* name; /* Macro name */
-    printf("DEBUG: \t\t\tGetting macro name\n");
+    
     /* Skipping leading blanks. */
     SkipBlank(line, &pos);
 
@@ -177,47 +183,42 @@ char* GetMacroName(char* line, int defLineNum, Errors* errors) {
     pos += 5;
 
     /* Getting macro name */
-    if (GetNextWord(line, &pos, word, MAX_STATEMENT_LEN+1, NULL) != NULL) {
+    if (GetNextWord(line, &pos, word, MAX_STATEMENT_LEN+1, NULL) != NULL)
         name = CopyStringToHeap(word);
-        printf("DEBUG: \t\t\tUnchecked macro name is %s\n", name);
-    }
     else { /* Name not defined */
-        printf("DEBUG: \t\t\tName not defined.");
         AddErrorManual(errors, defLineNum, ErrMacro_NameNotDefined, line, NULL);
         return NULL;
     }
 
     /* Checking for extra symbols in macro definition */
     /* Extra symbols will be ignored, but error will be displayed. */
-    if (GetNextWord(line, &pos, word, MAX_STATEMENT_LEN+1, NULL) != NULL) { 
+    if (GetNextWord(line, &pos, word, MAX_STATEMENT_LEN+1, NULL) != NULL)
         AddErrorManual(errors, defLineNum, ErrMacro_ExtraDef, line, NULL);
-    }
-    printf("DEBUG: \t\t\tName %s finished extra check\n", name);
+
     /* Checking if name is reserved assembly word */
     if (IsReservedWord(name)) {
-        printf("DEBUG: \t\t\tTurns out %s is a reserved word\n", name);
         AddErrorManual(errors, defLineNum, ErrMacro_NameReserved, line, name);
         free(name);
         return NULL;
     }
-    printf("DEBUG: \t\t\tName %s passed reserved check\n", name);
+
     /* Checking if name starts with a number. */
     if (IsDigit(name[0])) {
         AddErrorManual(errors, defLineNum, ErrMacro_NameNumber, line, NULL);
         free(name);
         return NULL;
     }
-    printf("DEBUG: \t\t\tName %s passed number check\n", name);
+
     /* Checking if name contains only numbers and letters */
     if (!IsAz09(name)) {  
         AddErrorManual(errors, defLineNum, ErrMacro_NameIllegal, line, NULL);
         free(name);
         return NULL;
     }
-    printf("DEBUG: \t\t\tName %s passed legal check\n", name);
 
     return name;
 }
+
 
 
 /* Gets macro info from source file.
@@ -257,8 +258,6 @@ MacroInfo* GetMacroInfo(FILE** source, int* num_lines, char* defLine, int defLin
     int open_tags = 1; /* Counter of opened macro tags.*/
     int failed = 0; /* Flag that shows if errors were encountered. */
 
-    printf("DEBUG: \t\tGetting macro info.\n");
-
     /* Allocating info structure */
     info = (MacroInfo*)malloc(sizeof(MacroInfo));
     if (info == NULL) {
@@ -270,16 +269,12 @@ MacroInfo* GetMacroInfo(FILE** source, int* num_lines, char* defLine, int defLin
     info->name = GetMacroName(defLine, defLineNum, errors);
     if (info->name == NULL)
         failed = 1;
-    else
-        printf("DEBUG: \t\tGot macro name %s\n", info->name);
 
     /* Saving first macro body line number. */
     info->body_line_num = defLineNum+1;
-    printf("DEBUG: \t\tBody start line is %d\n", info->body_line_num);
 
     /* Saving macro body start position in file. */
     info->body_pos = ftell(*source);
-    printf("DEBUG: \t\tBody start position is %ld\n", info->body_pos);
 
     /* Searching where macro ends and counting body lines. */
     /* Macro is considered closed when open_tags counter reaches 0
@@ -292,8 +287,6 @@ MacroInfo* GetMacroInfo(FILE** source, int* num_lines, char* defLine, int defLin
         (*num_lines)++;
         /* Reading line. */
         fgets(line, MAX_STATEMENT_LEN+2, *source);
-
-        printf("DEBUG: \t\tMacro body line ~%s", line);
 
         /* Checking for nested macro definitions. */
         if (IsLineMacroDef(line)) {
@@ -310,18 +303,14 @@ MacroInfo* GetMacroInfo(FILE** source, int* num_lines, char* defLine, int defLin
     /* Uncounting final closing tag line. */
     (*num_lines)--; 
 
-    printf("DEBUG: \t\tMacro has %d lines\n", *num_lines);
-
     /* After cycle we arrive to macro closing line "endm". It is 
        assumed that it will always appear. */
     /* Checking if closing tag line contains extra code. */
     /* Extra text will be ignored, but error will be displayed. */
     SkipBlank(line, &pos); /* Skipping blanks */
     pos += 4; /* Skipping "endm" */
-    if (GetNextWord(line, &pos, word, MAX_STATEMENT_LEN+1, NULL) != NULL) {
-        printf("DEBUG: \t\tExtra ater endm: [%s]\n", line);
+    if (GetNextWord(line, &pos, word, MAX_STATEMENT_LEN+1, NULL) != NULL)
         AddErrorManual(errors, defLineNum+*num_lines+1, ErrMacro_ExtraDefEnd, line, NULL);
-    }
 
     /* Writing number of line to info. */
     info->num_lines = *num_lines;
@@ -337,6 +326,7 @@ MacroInfo* GetMacroInfo(FILE** source, int* num_lines, char* defLine, int defLin
     else
         return info;
 }
+
 
 
 /* Registers macro definition in list of macros.
@@ -361,31 +351,23 @@ int RegisterMacroInfo(FILE** source, List* macros, char* defLine, int defLineNum
     MacroInfo* info = NULL; /* Variable to store macro info. */
     int num_lines; /* Number of lines in macro body not counting open/close tags. */
 
-    printf("DEBUG: \tRegistering macro.\n");
     info = GetMacroInfo(source, &num_lines, defLine, defLineNum, errors);
     /* After GetMacroInfo call file position will be set to the first character
        in line after macro endm line.*/
 
     /* If macro is read successfully */
     if (info != NULL) {
-        printf("DEBUG: \tGot macro info.\n");
         /* Checking if macro with this name already registered
             and adding it to the list. */
-        if (FindMacroByName(macros, info->name) == NULL) {
-            printf("DEBUG: \tAdding macro %s to the list\n", info->name);
+        if (FindMacroByName(macros, info->name) == NULL)
             ListAdd(macros, info);
-            printf("DEBUG: \tMacro %s registered\n", info->name);
-        }
-        else { /* If macro already exists. */
+        else  /* If macro already exists. */
             AddErrorManual(errors, defLineNum, ErrMacro_NameIdentical, defLine, info->name);
-        }
-    }
-    else {
-        printf("DEBUG: \tFailed to register macro.\n");
     }
     
     return defLineNum+num_lines+2;
 }
+
 
 
 /* Expands macro by name defined in callLine.
@@ -453,6 +435,8 @@ void ExpandMacro(FILE** source, FILE** target, long srcPos, char* callLine, int 
     return;
 }
 
+
+
 /* Frees memory occupied by macros list.
    Removes macro info objects, 
    list nodes and list structure itself.
@@ -474,6 +458,8 @@ void FreeMacrosList(List* macros) {
     /* Removing list object. */
     free(macros);
 }
+
+
 
 /* Executes pre-processing step on assembly source code file:
    Removes comments and blank lines and expands macros.
@@ -504,8 +490,6 @@ void Preprocess(char* sourceFileName, Errors* errors) {
     int fullNameLen; /* Length of full file name with extension not counting termination character. */
     char line[MAX_STATEMENT_LEN+2]; /* Buffer for holding line read from source file. */
     int line_num = 0; /* Number of line that is currently read from source file. (first line to be read will be 1) */
-    
-    printf("DEBUG: Preprocessing file %s.as\n", sourceFileName);
 
     /* Initializing the list */
     macros = CreateList();
@@ -531,8 +515,6 @@ void Preprocess(char* sourceFileName, Errors* errors) {
     /* Reading source file line by line. */
     while (fgets(line, MAX_STATEMENT_LEN+2, source) != NULL) {
         line_num++;
-
-        printf("DEBUG: line %d: %s", line_num, line);
 
         /* Checking if line is empty */
         if (IsLineBlank(line))
@@ -574,8 +556,4 @@ void Preprocess(char* sourceFileName, Errors* errors) {
 
     /* Freeing memory. */
     FreeMacrosList(macros);
-
-    printf("DEBUG: Preprocess finished.\n");
 }
-
-/* Test */

@@ -92,7 +92,7 @@ void FreeDynArr(DynArr* arr);
    Structure should be created by calling CreateBinary().
    Elements should be added by calling AddBinary()
    and array will be expanded automatically and counter will be increased.
-   Elemements can be read by calling GetBinary() and set by SetBinary().
+   Elements can be read by calling GetBinary() and set by SetBinary().
    Memory can be freed by calling FreeBinary().
     */
 typedef struct BinarySegment {

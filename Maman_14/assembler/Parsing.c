@@ -378,7 +378,7 @@ char* GetNextArg(char* line, int* pos) {
         free(arg);
         return NULL;
     }
-    printf("DEBUG: \t\tGot argument [%s]. Now pos is %d.\n", arg, *pos);
+
     return arg;
 }
 
@@ -395,7 +395,10 @@ char* GetNextArg(char* line, int* pos) {
     lineNum -- Number of given line in expanded source code.
     slr     -- Source line reference.
    Returns:
-    List of stings of arguments. Empty list will be returned if no arguments.*/
+    List of stings of arguments. Empty list will be returned if no arguments.
+   Algorithm:
+    Uses SkipCommas to count commas before, between and after arguments and
+    GetNextArg to get arguments. */
 List* GetRawArgs(char* line, int* pos, Errors* errors) {
     List* args; /* List for holding arguments. */
     char* arg; /* Variable for storing an argument. */
@@ -431,8 +434,6 @@ List* GetRawArgs(char* line, int* pos, Errors* errors) {
                 AddError(errors, ErrCmm_After, line, NULL);
         }
     }
-
-    printf("DEBUG: \t\tGetArgs: Got %d arguments.\n", args->count);
 
     return args;
 }
@@ -527,8 +528,7 @@ int ParseRegisterName(char* s) {
     failed  -- Pointer to result indicator set to 1 if parsing errors encountered.
                If indexer not found left as it was.
    Returns:
-    Indexer content as sting (if arg is label[r0] "r0" will be returned).
- */
+    Indexer content as sting (if arg is label[r0] "r0" will be returned). */
 char* GetIndexer(char* arg, int* pos, int* failed, Errors* errors) {
     char* indexer; /* Variable for holding indexer. */
     int i =0; /* Indexer string iterator. */
@@ -593,8 +593,8 @@ char* GetIndexer(char* arg, int* pos, int* failed, Errors* errors) {
 
 
 
-/* Writes into provided structure, returns NULL if failed, or pointer to structure.
-   Parses label argument of instruction. (label, or label[r0] for example).
+/* Parses label argument of instruction. (label, or label[r0] for example).
+   Writes into provided structure, returns NULL if failed, or pointer to structure.
    Arguments:
     arg     -- Label argument as string.
     parg    -- Pointer for returning result.
@@ -665,7 +665,13 @@ InsArg* ParseLabelArgument(char* arg, InsArg* parg, Errors* errors) {
    errors   -- Errors list.
   Returns:
    Structure that describes the argument.
-   NULL if failed. */
+   NULL if failed.
+  Algorithm:
+   Determines what kind of argument is given:
+    If it starts with # ParseNumber is used
+    If it starts with letter r ParseRegisterName is used.
+    If ParseRegisterName failed argument considered a label argument and ParseLabelArgument is called.
+    If all parsing failed NULL is returned.  */
 InsArg* ParseInsArg(char* arg, Errors* errors) {
     InsArg* parg;   /* Parsed argument. */
 
@@ -700,6 +706,8 @@ InsArg* ParseInsArg(char* arg, Errors* errors) {
     /* Now if argument isn't # number, or rxx register it is a label possibly with index. */ 
     return ParseLabelArgument(arg, parg, errors);
 }
+
+
 
 /* Gets argument (label) of .extern or .entry directives.
    Writes argument to provided buffer.
@@ -754,6 +762,8 @@ char* GetSymbolDirectiveArgument(char* line, int* pos, char arg[MAX_LABEL_LEN+1]
     return arg;   
 }
 
+
+
 /* Parses list of .data directive numeric arguments given as strings.
    Returns dynamic array containing integer value.
    Arguments:
@@ -784,7 +794,7 @@ DynArr* ParseDataArgs(char* line, List* rawArgs, Errors* errors) {
         if (IsNumber(cur->data)) {
             /* Parsing argument value. */
             int pnum = ParseNumber(cur->data); 
-            printf("DEBUG: Parsed number %d\n", pnum);
+            
             AddDynArr(pargs, pnum);
         }
         else {
@@ -861,4 +871,132 @@ char* ParseStringArgument(char* line, char* arg, Errors* errors) {
     str[ipos] = '\0';
 
     return str;
+}
+
+
+
+/* Parses instruction line and produces Ins structure allocated on heap.
+   Structure contains istruction code and structures that describe arguments.
+   Catches parsing and arguments errors.
+   Moves position to end of the line.
+   Assumes that provided arguments are correct and does not check them.
+   Arguments:
+    line    -- Instruction line from source code.
+    pos     -- Position in line after label and before instruction name.
+    errors  -- Errors list.
+   Returns:
+    Pointer to allocated instruction structure. NULL if parsing failed.
+   Algorithm:
+     */
+Ins* ParseInstructionLine(char* line, int* pos, Errors* errors) {
+    char word[MAX_STATEMENT_LEN + 2]; /* Buffer for holding word from line. */
+    char* res;                        /* Result of getting the word. */
+    Ins* ins;                         /* Parsed instruction structure. */
+    List* rawArgs;                    /* Instruction arguments as strings. */
+    InsInfo insinfo;                  /* Info about instruction. */
+    int num_args;                     /* Number of arguments required by instruction (not necessarily actually entered number of arguments).
+                                         Deducted from insinfo. */
+
+    /* Getting first word after label (possible instruction name). */
+    res = GetNextWord(line, pos, word, MAX_STATEMENT_LEN + 1, ",");
+    /* Checking if line is not empty. */
+    if (res == NULL) {
+        AddError(errors, ErrStm_Empty, line, NULL);
+        return NULL;
+    }
+
+    /* Allocating instruction structure. */
+    ins = (Ins*)malloc(sizeof(Ins));
+    if (ins == NULL) {
+        perror("Failed to allocate memory.");
+        exit(1);
+    }
+    /* Initializing fields. */
+    ins->source = NULL;
+    ins->dest = NULL;
+
+    /* Getting instruction code. */
+    ins->ins = GetInstructionType(word);
+    /* If instruction is not recognized. */
+    if (ins->ins == -1) {
+        AddError(errors, ErrStm_NotRecognized, line, word);
+        FreeIns(ins);
+        return NULL;
+    }
+
+    /* Getting instruction arguments as strings. */
+    rawArgs = GetRawArgs(line, pos, errors);
+
+    /* Getting instruction info. */
+    insinfo = GetInstructionInfo(ins->ins);
+
+    /* Deducting number of arguments that should be in instruction. */
+    if (insinfo.amodes_dest == 0)
+        num_args = 0; /* If there is no destination argument there is no source argument. */
+    else {
+        if (insinfo.amodes_source == 0)
+            num_args = 1; /* Only destination argument. */
+        else
+            num_args = 2; /* Destination and source arguments. */
+    }
+
+    /* Checking number of arguments that were extracted from the line. */
+    /* Missing arguments. */
+    if (rawArgs->count < num_args) {
+        AddError(errors, ErrIns_MissingArg, line, NULL);
+        free(ins);                /* Freeing instruction structure. */
+        FreeListAndData(rawArgs); /* Freeing arguments list. */
+        return NULL;
+    }
+
+    /* Too many arguments. */
+    if (rawArgs->count > num_args)
+        /* Too many arguments. Appropriate number of arguments will
+           be parsed, but error will be saved. */
+        AddError(errors, ErrIns_ExtraArg, line, NULL);
+
+    /* If instruction has 2 arguments: */
+    if (num_args == 2) {
+        /* Parsing arguments. */
+        ins->source = ParseInsArg(rawArgs->head->data, errors);
+        ins->dest = ParseInsArg(rawArgs->head->next->data, errors);
+        /* Freeing raw arguments list. */
+        FreeListAndData(rawArgs);
+        /* If parsing arguments failed. */
+        if (ins->source == NULL || ins->dest == NULL) {
+            FreeIns(ins); /* Removing instruction structure. */
+            return NULL;
+        }
+        /* Checking if entered modes are available for instuction arguments. */
+        if (!HasMode(insinfo.amodes_source, ins->source->amode)) {
+            AddError(errors, ErrIns_InvalidSrcAmode, line, NULL);
+            FreeIns(ins);
+            return NULL;
+        }
+        if (!HasMode(insinfo.amodes_dest, ins->dest->amode)) {
+            AddError(errors, ErrIns_InvalidDestAmode, line, NULL);
+            FreeIns(ins);
+            return NULL;
+        }
+    }
+
+    /* If instruction has 1 argument it is always a destination argument. */
+    if (num_args == 1) {
+        /* Parsing arguments. */
+        ins->dest = ParseInsArg(rawArgs->head->data, errors);
+        FreeListAndData(rawArgs); /* Freeing string arguments. */
+        /* If parsing arguments failed. */
+        if (ins->dest == NULL) {
+            FreeIns(ins);
+            return NULL;
+        }
+        /* Checking if entered modes are available for destination argument. */
+        if (!HasMode(insinfo.amodes_dest, ins->dest->amode)) {
+            AddError(errors, ErrIns_InvalidDestAmode, line, NULL);
+            FreeIns(ins);
+            return NULL;
+        }
+    }
+
+    return ins;
 }

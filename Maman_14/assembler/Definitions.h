@@ -45,8 +45,11 @@ typedef struct InsInfo {
    int ins;                /* Instruction number according to InstructionsEnum*/
    int opcode;             /* Instruction opcode */
    int funct;              /* Instruction funct code. (0 if no code)*/
-   int amodes_source;      /* [8]immideate-[4]direct-[2]d-index-[1]register*/
-   int amodes_dest;
+   int amodes_source;      /* 4-bit binary value that describes possible addressing modes
+                              for source argument. Each bit describes one mode:
+                              [8]immideate-[4]direct-[2]d-index-[1]register
+                              For example if modes =  5 = 0101 possible modes are direct and register. */
+   int amodes_dest;        /* Possible addressing modes for destination argument. */
 } InsInfo;
 
 /* Return info about given instruction.

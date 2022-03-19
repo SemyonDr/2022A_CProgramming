@@ -9,6 +9,6 @@
 #include "Parsing.h"
 #include "Preprocessor.h"
 #include "Binary.h"
-#include "MyDebug.h"
+#include "Output.h"
 
 #endif

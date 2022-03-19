@@ -38,7 +38,7 @@ Errors* CreateErrors() {
 
     /* Creating source line reference. */
     errors->slr = CreateDynArr(32);
-    AddDynArr(errors->slr, -1);
+    AddDynArr(errors->slr, 0);
 
     /* Setting other fields. */
     errors->cur_line_num = 0;
@@ -330,9 +330,10 @@ void PrintError(Error* er) {
     printf("\n");
 }
 
+
 /* Prints errors in list to stdout in order.
    If list is empty nothing will be printed.
-   Assumes tha errors is not NULL.
+   Assumes that errors is not NULL.
    Arguments:
     errors  -- errors list. */
 void PrintErrorsList(Errors* errors) {
@@ -344,4 +345,79 @@ void PrintErrorsList(Errors* errors) {
         PrintError(er);
     }
         
+}
+
+
+
+/* Copies error structure values from original to copy.
+   Assumes that copy is allocated. */
+void CopyError(Error* original, Error* copy) {
+    int pos; /* Characters iterator for line copying. */
+
+    /* Copying code and line number. */
+    copy->error_code = original->error_code;
+    copy->source_line_num = original->source_line_num;
+    /* Copying source. */
+    pos = 0;
+    while (original->source[pos] != '\0') {
+        copy->source[pos] = original->source[pos];
+        pos++;
+    }
+    copy->source[pos] = '\0';
+    /* Copying info. */
+    pos = 0;
+    while (original->info[pos] != '\0') {
+        copy->info[pos] = original->info[pos];
+        pos++;
+    }
+    copy->info[pos] = '\0';
+}
+
+
+/* Sorts errors list by number of error source line.
+   Uses insertion sort algorithm.
+   Arguments:
+    errors  -- Errors list.
+    */
+void SortErrors(Errors* errors) {
+    int i; /* Iterator. */
+    Error* key = (Error*)malloc(sizeof(Error)); /* Buffer for stroring currently sorted error structure. */
+        if (key == NULL) {
+            perror("Failed to allocate memory.");
+            exit(1);
+    }
+
+    if (errors->count <= 1) /* No need to sort. */
+        return; 
+
+    /* In insertion sort beginning of the list (everything before "key" element) considered sorted.
+       Initial sorted part is first element and initial key is the second. */
+    for (i = 1; i < errors->count; i++) {
+        int j = i-1; /* Back going iterator. */
+        /* Copying currently sorted element to buffer. */
+        CopyError(&(errors->list[i]), key);
+
+        /* Moving sorted values that are bigger than key one cell forward. */
+        while (key->source_line_num < (errors->list[j]).source_line_num && j>0) {
+            CopyError(&(errors->list[j]),&(errors->list[j+1]));
+            j--;
+        }
+        /* Placing key after first value that is smaller. */
+        CopyError(key, &(errors->list[j+1]));
+    }
+}
+
+
+
+/* Frees memory occupied by errors list.
+   Deallocates structures used by errors and errors structure itself.
+   Arguments:
+    errors  -- Errors list.*/
+void FreeErrors(Errors* errors) {
+    /* Freeing errors list. */
+    free(errors->list);
+    /* Freeing source line reference. */
+    FreeDynArr(errors->slr);
+    /* Removing errors structure. */
+    free(errors);
 }
