@@ -17,4 +17,4 @@ all: compile
 # con.c -- file to be compiled
 # -o ./assembler -- resulting executable
 compile:
-	$(CC) Definitions.c MyString.c Data.c DataContainers.c Symbols.c Errors.c Parsing.c Preprocessor.c  Binary.c Output.c assembler.c $(CFLAGS) $(CFLAGS) -o ./assembler
+	$(CC) Definitions.c MyString.c Data.c DataContainers.c Symbols.c Errors.c Parsing.c Preprocessor.c Binary.c Output.c assembler.c $(CFLAGS) $(CFLAGS) -o ./assembler
